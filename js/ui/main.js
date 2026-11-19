@@ -60,7 +60,7 @@
 
   /* ---------------------------------------------------------------- map pointer input */
   const pts = new Map(); let down = null, moved = false, pinch = 0, pinchC = null, lastClick = { t: 0, o: -1 };
-  let hover = null, hoverShown = false;
+  let hover = null, hoverShown = false, holdT = 0, held = false;
   function clickTile(i) {
     if (Main.mode === 'setup') { ID.Screens.pickAt(i); return; }
     if (Main.mode !== 'game' || !UI.G) return;
@@ -74,7 +74,10 @@
     ID.Audio.unlock();
     cv.setPointerCapture(e.pointerId);
     pts.set(e.pointerId, { x: e.clientX, y: e.clientY });
-    if (pts.size === 1) { down = { x: e.clientX, y: e.clientY }; moved = false; }
+    if (pts.size === 1) { down = { x: e.clientX, y: e.clientY }; moved = false; held = false; }
+    clearTimeout(holdT); holdT = 0;
+    /* A finger held still on the map shows what the mouse would show on hover. */
+    if (pts.size === 1 && e.pointerType !== 'mouse') holdT = setTimeout(() => { holdT = 0; if (pts.size !== 1 || moved || !down) return; const h = tileTip(R.tileAt(down.x, down.y)); if (h) { UI.tipAt(down.x, down.y, h, true); hoverShown = true; held = true; } }, 480);
     if (pts.size === 2) { const [a, b] = [...pts.values()]; pinch = Math.hypot(a.x - b.x, a.y - b.y); pinchC = { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 }; moved = true; }
     hideMapTip();
   }
@@ -83,7 +86,7 @@
     const p = pts.get(e.pointerId), dx = e.clientX - p.x, dy = e.clientY - p.y;
     p.x = e.clientX; p.y = e.clientY;
     if (pts.size === 1) {
-      if (!moved && Math.hypot(e.clientX - down.x, e.clientY - down.y) > 5) { moved = true; cv.classList.add('drag'); }
+      if (!moved && Math.hypot(e.clientX - down.x, e.clientY - down.y) > (e.pointerType === 'mouse' ? 5 : 10)) { moved = true; cv.classList.add('drag'); clearTimeout(holdT); holdT = 0; if (held) hideMapTip(); }
       if (moved) R.pan(dx, dy);
     } else if (pts.size === 2) {
       const [a, b] = [...pts.values()]; const d = Math.hypot(a.x - b.x, a.y - b.y), c = { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 };
@@ -94,8 +97,9 @@
   function onUp(e) {
     if (!pts.has(e.pointerId)) return;
     const single = pts.size === 1; pts.delete(e.pointerId);
+    clearTimeout(holdT); holdT = 0;
     if (pts.size < 2) pinch = 0;
-    if (single && !moved && Main.mode !== 'title') clickTile(R.tileAt(e.clientX, e.clientY));
+    if (single && !moved && !held && e.type !== 'pointercancel' && Main.mode !== 'title') clickTile(R.tileAt(e.clientX, e.clientY));
     if (!pts.size) { cv.classList.remove('drag'); moved = false; }
   }
   function onWheel(e) {
@@ -114,10 +118,14 @@
   function hideMapTip() { if (hoverShown) { UI.hideTip(); hoverShown = false; } }
   function hoverTip(now) {
     if (!hover || hoverShown || pts.size || UI.modalKind || now - hover.t < 420) return;
-    const G = Main.mode === 'game' ? UI.G : null; if (!G) return;
     const el = document.elementFromPoint(hover.x, hover.y); if (el !== cv) return;
-    const i = R.tileAt(hover.x, hover.y); if (i < 0) return;
-    const t = ID.TERRAIN[G.terrain[i]]; if (G.terrain[i] === ID.T.SEA) return;
+    const h = tileTip(R.tileAt(hover.x, hover.y)); if (!h) return;
+    UI.tipAt(hover.x, hover.y, h); hoverShown = true;
+  }
+  /* What a tile is, whose it is, and what a click on it would do. '' for the sea or outside a game. */
+  function tileTip(i) {
+    const G = Main.mode === 'game' ? UI.G : null; if (!G || i < 0 || UI.modalKind) return '';
+    const t = ID.TERRAIN[G.terrain[i]]; if (G.terrain[i] === ID.T.SEA) return '';
     const o = G.owner[i], n = o ? G.nations[o] : null, Pr = G.provinces[G.prov[i]], me = UI.P();
     let h = '<h5>' + (n ? esc(n.name) : 'The hinterland') + '</h5>' + (n ? '' : 'Unclaimed land. Any state may take it without a war.<br>');
     if (n) h += esc(ID.IDEOLOGIES[n.ideo].name) + (n === me ? '' : ' · opinion of you <b>' + Math.round(ID.op(G, n.id, me.id)) + '</b>' + (ID.atWar(G, me.id, n.id) ? ' · <b class="bad">at war</b>' : '')) + '<br>';
@@ -130,10 +138,10 @@
     }
     if (G.cut[i] === 1) h += '<br><b class="bad">Cut off from supply</b>';
     else if (G.cut[i] === 2) h += '<br><span class="warn">Supplied by sea' + (ID.Combat.isBeach(G, i) ? ': this is the beachhead' : '') + '</span>';
-    if (n === me && !G.bld[i]) h += '<br><span class="dim">Click to build here.</span>';
-    else if (n && n !== me && ID.atWar(G, me.id, n.id)) h += '<br><span class="dim">Click to select; double-click to attack.</span>';
-    else if (!n) h += '<br><span class="dim">Double-click to expand into it.</span>';
-    UI.tipAt(hover.x, hover.y, h); hoverShown = true;
+    if (n === me && !G.bld[i]) h += '<br><span class="dim">' + UI.tap('Click to build here.') + '</span>';
+    else if (n && n !== me && ID.atWar(G, me.id, n.id)) h += '<br><span class="dim">' + UI.tap('Click to select; double-click to attack.') + '</span>';
+    else if (!n) h += '<br><span class="dim">' + UI.tap('Double-click to expand into it.') + '</span>';
+    return h;
   }
 
   /* ---------------------------------------------------------------- boot */
@@ -144,11 +152,14 @@
     cv.addEventListener('pointermove', onMove);
     cv.addEventListener('pointerup', onUp);
     cv.addEventListener('pointercancel', onUp);
-    cv.addEventListener('pointerleave', () => { hover = null; hideMapTip(); });
+    cv.addEventListener('pointerleave', (e) => { if (e.pointerType !== 'mouse') return; hover = null; hideMapTip(); }); // a lifted finger also 'leaves': keep a held tooltip up
     cv.addEventListener('wheel', onWheel, { passive: false });
     window.addEventListener('resize', () => R.resize());
-    window.addEventListener('beforeunload', () => { if (Main.mode === 'game' && UI.G && !UI.G.over) ID.Screens.autosave(UI.G); });
-    document.addEventListener('visibilitychange', () => { if (document.hidden && Main.mode === 'game' && UI.G && !UI.G.paused) UI.setPaused(true); });
+    const keep = () => { if (Main.mode === 'game' && UI.G && !UI.G.over) ID.Screens.autosave(UI.G); };
+    window.addEventListener('beforeunload', keep);
+    window.addEventListener('pagehide', keep); // phones close background tabs without beforeunload
+    window.addEventListener('orientationchange', () => setTimeout(() => R.resize(), 250));
+    document.addEventListener('visibilitychange', () => { if (document.hidden && Main.mode === 'game' && UI.G) { if (!UI.G.paused) UI.setPaused(true); if (UI.touch) keep(); } });
     ID.Screens.title();
     last = performance.now();
     requestAnimationFrame(loop);

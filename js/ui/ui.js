@@ -12,6 +12,24 @@
   const P = () => UI.G.nations[UI.G.player];
   UI.P = P;
 
+  /* ---------------------------------------------------------------- phones and tablets
+     UI.touch: the main pointer is a finger (wording: tap, press and hold).
+     UI.compact: the screen is phone-sized; css/style.css has the matching media query. */
+  const mq = (q) => (window.matchMedia ? window.matchMedia(q) : { matches: false, addEventListener() {} });
+  const mqTouch = mq('(pointer: coarse)'), mqCompact = mq('(max-width: 760px), (max-height: 500px)');
+  UI.touch = mqTouch.matches || (!window.matchMedia && 'ontouchstart' in window);
+  UI.compact = mqCompact.matches;
+  UI.modesOpen = false; UI.alertsOpen = false;
+  /* The verb for the player's pointer: UI.tap('Click') -> 'Tap' on a phone. */
+  UI.tap = (w) => (UI.touch ? w.replace(/double-click/gi, (m) => (m[0] === 'D' ? 'Double-tap' : 'double-tap')).replace(/click/gi, (m) => (m[0] === 'C' ? 'Tap' : 'tap')).replace(/\bhover\b/gi, (m) => (m[0] === 'H' ? 'Press and hold' : 'press and hold')) : w);
+  function onLayoutChange() {
+    UI.touch = mqTouch.matches; UI.compact = mqCompact.matches;
+    document.documentElement.classList.toggle('touch', UI.touch);
+    if (UI.G && !$('#hud').hidden) { UI.renderTop(true, true); UI.renderModes(); UI._alKey = ''; UI.renderAlerts(); UI.renderSel(); UI.renderAtk(); }
+    else if (ID.Screens && ID.Screens.relayout) ID.Screens.relayout();
+  }
+  for (const m of [mqTouch, mqCompact]) { if (m.addEventListener) m.addEventListener('change', onLayoutChange); else if (m.addListener) m.addListener(onLayoutChange); }
+
   /* ---------------------------------------------------------------- html helpers */
   const tip = (UI.tip = (html) => (html ? ' data-tip="' + esc(html) + '"' : ''));
   UI.btn = function (label, act, args, o) {
@@ -41,15 +59,19 @@
 
   /* ---------------------------------------------------------------- tooltips */
   let tipEl = null, mx = 0, my = 0, tipFor = null;
+  /* lastTouch: when a finger last went down. Browsers send a fake mousemove after every tap; it must not open a tooltip. */
+  let lastTouch = -1e9, fingerTip = false, holdT = 0, holdAt = null, holdDone = false, fingerMode = UI.touch; // fingerMode: the last input was a finger
   function placeTip() {
     const w = tipEl.offsetWidth, h = tipEl.offsetHeight; let x = mx + 16, y = my + 18;
-    if (x + w > innerWidth - 8) x = mx - w - 12; if (y + h > innerHeight - 8) y = my - h - 12;
+    if (fingerTip) { x = mx - w / 2; y = my - h - 28; if (y < 6) y = my + 36; } // above the finger, where it can be read
+    if (x + w > innerWidth - 8) x = fingerTip ? innerWidth - w - 8 : mx - w - 12; if (y + h > innerHeight - 8) y = my - h - 12;
     tipEl.style.left = Math.max(6, x) + 'px'; tipEl.style.top = Math.max(6, y) + 'px';
   }
   UI.showTip = function (html) { tipEl.innerHTML = html; tipEl.hidden = false; placeTip(); };
-  UI.hideTip = function () { tipEl.hidden = true; tipFor = null; };
-  UI.tipAt = function (x, y, html) { mx = x; my = y; tipFor = null; UI.showTip(html); };
+  UI.hideTip = function () { tipEl.hidden = true; tipFor = null; fingerTip = false; };
+  UI.tipAt = function (x, y, html, finger) { mx = x; my = y; tipFor = null; fingerTip = !!finger; UI.showTip(html); };
   UI.retip = function () {
+    if (fingerMode && tipEl.hidden) return; // a finger has no hover: only refresh a tooltip already held open
     const el = document.elementFromPoint(mx, my); const t = el && el.closest ? el.closest('[data-tip]') : null;
     if (t) { tipFor = t; UI.showTip(t.getAttribute('data-tip')); } else if (tipFor) UI.hideTip();
   };
@@ -67,7 +89,11 @@
   acts.closeTab = () => UI.openTab(null);
   acts.pause = () => UI.setPaused(!UI.G.paused);
   acts.speed = (a) => { UI.G.speed = a; UI.setPaused(false); };
-  acts.mode = (a) => { R.setMode(a); UI.renderModes(); };
+  acts.speedCycle = () => { const G = UI.G; if (G.paused) { UI.setPaused(false); return; } G.speed = (G.speed % 5) + 1; UI.renderTop(); };
+  acts.mode = (a) => { R.setMode(a); if (UI.compact) UI.modesOpen = false; UI.renderModes(); };
+  acts.atkTog = () => { UI.atkOpen = !UI.atkOpen; };
+  acts.modesTog = () => { UI.modesOpen = !UI.modesOpen; UI.renderModes(); };
+  acts.alertsTog = () => { UI.alertsOpen = !UI.alertsOpen; UI._alKey = ''; UI.renderAlerts(); };
   acts.blocs = () => { R.showBlocs = !R.showBlocs; UI.G.dirtyAll = true; UI.renderModes(); };
   acts.unsel = () => { UI.sel = -1; R.selected = -1; UI.renderSel(); UI.renderAtk(); };
   acts.closeModal = () => UI.closeModal();
@@ -96,11 +122,12 @@
   acts.posture = (k) => { if (UI.tryDo(ID.Combat.setPosture(UI.G, P(), k))) { UI.toast(ID.Combat.POSTURE[k].name + ': the army reorganises.', true); UI.after(); } };
   acts.abil = (k) => {
     const G = UI.G, n = P(), ab = ID.Combat.ABIL[k];
+    if (UI.aim === k) { UI.aim = null; document.getElementById('map').classList.remove('aim'); UI.toast('Order cancelled.', true); return; }
     if (ab.self) { if (UI.tryDo(ID.Combat.useAbil(G, n, k)) && n.a.lastAbil && n.a.lastAbil.msg) UI.toast(ab.name + ': ' + n.a.lastAbil.msg, true); return; }
     const pre = ID.Combat.abilBlock(G, n, k, -1); if (pre && pre.indexOf('Select') !== 0 && pre.indexOf('Target') !== 0) { UI.tryDo(pre); return; }
     if (UI.sel >= 0 && G.owner[UI.sel] && G.owner[UI.sel] !== n.id && !ID.Combat.abilBlock(G, n, k, UI.sel)) { UI.fireAbil(k, UI.sel); return; }
     UI.aim = k; document.getElementById('map').classList.add('aim');
-    UI.toast('Click enemy land to aim the ' + ab.name.toLowerCase() + '. Esc cancels.', true);
+    UI.toast(UI.touch ? 'Tap enemy land to aim the ' + ab.name.toLowerCase() + '. Tap the order again to cancel.' : 'Click enemy land to aim the ' + ab.name.toLowerCase() + '. Esc cancels.', true);
   };
   UI.fireAbil = function (k, tile) {
     const G = UI.G, n = P(); UI.aim = null; document.getElementById('map').classList.remove('aim');
@@ -220,7 +247,8 @@
         '<div class="stats">' + STATS.map((s) => '<div class="st ' + s[2] + '" id="st-' + s[0] + '"><i>' + s[1] + '</i><b id="sv-' + s[0] + '">–</b></div>').join('') + '</div>' +
         '<div class="clock"><div class="date" id="t-date"><b id="sv-date"></b><small id="sv-era"></small></div>' +
         '<button class="b spd pause" data-act="pause" id="b-pause"' + tip('<b>Pause / resume</b> <span class="dim">(Space)</span>') + '></button>' +
-        [1, 2, 3, 4, 5].map((s) => '<button class="b spd" data-act="speed" data-a="' + s + '" id="b-spd' + s + '"' + tip('<b>Speed ' + s + '</b> <span class="dim">(key ' + s + ')</span><br>' + ID.SPEEDS[s] + ' days per second') + '>' + s + '</button>').join('') + '</div>';
+        '<button class="b spd spdc" data-act="speedCycle" id="b-spdc"' + tip('<b>Speed</b><br>Tap to go faster; after 5 it starts again at 1.') + '></button>' +
+        [1, 2, 3, 4, 5].map((s) => '<button class="b spd spdn" data-act="speed" data-a="' + s + '" id="b-spd' + s + '"' + tip('<b>Speed ' + s + '</b> <span class="dim">(key ' + s + ')</span><br>' + ID.SPEEDS[s] + ' days per second') + '>' + s + '</button>').join('') + '</div>';
     }
     const set = (id, html) => { const el = document.getElementById(id); if (el && el.innerHTML !== html) el.innerHTML = html; };
     const net = n.net;
@@ -240,6 +268,7 @@
     set('sv-date', d.str); set('sv-era', ID.ERAS[ID.eraOf(G.tick)].name);
     const pb = document.getElementById('b-pause'); if (pb) { pb.classList.toggle('on', !!G.paused); const t = G.paused ? '❚❚' : '▶'; if (pb.textContent !== t) pb.textContent = t; }
     for (let s = 1; s <= 5; s++) { const el = document.getElementById('b-spd' + s); if (el) el.classList.toggle('on', G.speed === s && !G.paused); }
+    { const sc = document.getElementById('b-spdc'); if (sc) { const t = '»' + G.speed; if (sc.textContent !== t) sc.textContent = t; sc.classList.toggle('on', !G.paused); } }
     if (force || !UI._tipsAt || G.tick - UI._tipsAt > 30) { UI._tipsAt = G.tick; UI.topTips(); }
   };
   /* The army's kit in one paragraph: where it comes from and what it does. */
@@ -274,7 +303,7 @@
   UI.openTab = function (t, keep) {
     if (!keep && t === UI.tab) return;
     UI.tab = t; const d = $('#drawer');
-    d.hidden = !t; $('#modes').classList.toggle('shift', !!t); $('#atkbar').classList.toggle('shift', !!t); $('#alerts').classList.toggle('shift', !!t);
+    d.hidden = !t; $('#hud').classList.toggle('dopen', !!t); $('#modes').classList.toggle('shift', !!t); $('#atkbar').classList.toggle('shift', !!t); $('#alerts').classList.toggle('shift', !!t);
     for (const x of TABS) { const el = document.getElementById('tab-' + x[0]); if (el) el.classList.toggle('on', x[0] === t); }
     if (t) { UI.renderPanel(true); ID.Audio.play('click'); }
   };
@@ -291,7 +320,10 @@
   const MODES = [['political', 'Political', 'Z', 'Who holds what. Your own borders are red; bloc members share a border colour.'], ['ideology', 'Ideology', 'X', 'Every state coloured by its system.'], ['opposition', 'Opposition', 'C', 'The leading opposition movement in each province, shaded by its strength.'], ['stability', 'Unrest', 'V', 'Unrest by province: pale is quiet, red is close to revolt.'], ['supply', 'Supply', 'B', 'Green is joined to its capital by land. Ochre is supplied by sea through a port or a beachhead. Red is cut off: with an enemy beside it, it surrenders within weeks.'], ['terrain', 'Terrain', 'N', 'Plains and farmland are fast; forest, hills and mountains slow a front and bleed it.']];
   UI.MODES = MODES;
   UI.renderModes = function () {
-    $('#modes').innerHTML = MODES.map((m) => '<button class="' + (R.mode === m[0] ? 'on' : '') + '" data-act="mode" data-a=\'"' + m[0] + '"\'' + tip('<b>' + m[1] + ' map</b> <span class="dim">(' + m[2] + ')</span><br>' + m[3]) + '>' + m[1] + '<kbd>' + m[2] + '</kbd></button>').join('');
+    const cur = MODES.find((m) => m[0] === R.mode) || MODES[0];
+    $('#modes').classList.toggle('open', !!UI.modesOpen);
+    $('#modes').innerHTML = '<button class="mtog" data-act="modesTog">Map: ' + cur[1] + '<kbd>' + (UI.modesOpen ? '▴' : '▾') + '</kbd></button>' + // phones only (css)
+      MODES.map((m) => '<button class="' + (R.mode === m[0] ? 'on' : '') + '" data-act="mode" data-a=\'"' + m[0] + '"\'' + tip('<b>' + m[1] + ' map</b> <span class="dim">(' + m[2] + ')</span><br>' + m[3]) + '>' + m[1] + '<kbd>' + m[2] + '</kbd></button>').join('');
   };
 
   /* ---------------------------------------------------------------- selection card */
@@ -356,6 +388,7 @@
 
   UI.renderSel = function () {
     const G = UI.G, el = $('#sel'); if (!G) return;
+    $('#hud').classList.toggle('selopen', UI.sel >= 0);
     if (UI.sel < 0) { el.hidden = true; return; }
     const i = UI.sel, o = G.owner[i], me = P(); const n = o ? G.nations[o] : null;
     const Pr = G.provinces[G.prov[i]]; const terr = ID.TERRAIN[G.terrain[i]];
@@ -431,7 +464,9 @@
     const tr = n.troops * UI.commit;
     let h = '<div class="l1"><label' + tip('<h5>Commit</h5>The share of your uncommitted pool sent into the next attack or landing. What you send leaves the pool; what you keep defends everywhere at once.' + (cap < 1 ? '<hr><span class="warn">' + esc(I.name) + ': no single offensive may use more than ' + Math.round(cap * 100) + '%.</span>' : '')) + '>Commit</label><input type="range" min="5" max="' + Math.round(cap * 100) + '" step="5" value="' + Math.round(UI.commit * 100) + '" data-in="commit" id="in-commit"><b id="commit-v">' + Math.round(UI.commit * 100) + '% · ' + ID.fmtPop(tr) + '</b>' +
       (t && (ID.borders(G, n.id, t.id) || mine.some((a) => a.to === t.id)) ? UI.btn('Attack ' + esc(t.base), 'attack', null, { cls: 'red', id: 'b-attack', tip: 'Launch or reinforce the attack on ' + esc(t.name) + ' <span class="dim">(Enter)</span>' }) : t ? UI.btn('Land in ' + esc(t.base), 'autoLanding', t.id, { cls: 'red', id: 'b-attack', off: n.nb[B.PORT] ? '' : 'You have no land front with ' + esc(t.base) + ' and no port to sail from. Build a port on your coast.', tip: '<h5>Naval landing</h5>No land front with ' + esc(t.name) + '. Your staff picks the best beach within reach of your ports, away from fortresses, and sends ' + ID.fmtPop(tr) + ' troops.<hr>' + UI.seaLine(n, t) + '<br>To choose the beach yourself, click a tile on their coast.' }) : n.nwars ? '<span class="dim" style="font-size:14px">Select an enemy on the map</span>' : '') +
-      (wildOK ? UI.btn('Expand', 'expand', null, { cls: t ? 'ghost' : 'red', id: 'b-expand', tip: '<h5>Expand into the hinterland</h5>Claim unclaimed land along your frontier with ' + ID.fmtPop(tr) + ' troops. No war, no vote: the land is free for whoever takes it first. Your neighbours are racing for it too.' }) : '') + '</div>';
+      (wildOK ? UI.btn('Expand', 'expand', null, { cls: t ? 'ghost' : 'red', id: 'b-expand', tip: '<h5>Expand into the hinterland</h5>Claim unclaimed land along your frontier with ' + ID.fmtPop(tr) + ' troops. No war, no vote: the land is free for whoever takes it first. Your neighbours are racing for it too.' }) : '') +
+      (n.nwars ? '<button class="b sm ghost atog" data-act="atkTog">' + (UI.atkOpen ? 'Fold ▾' : 'Orders ▴') + '</button>' : '') + '</div>'; // the fold: phones only (css)
+    el.classList.toggle('open', !!UI.atkOpen);
     if (n.nwars) { const PO = ID.Combat.POSTURE, cur = n.posture || 'balanced'; h += '<div class="styles posture"><span class="plab">Posture</span>' + Object.keys(PO).map((k) => UI.btn(PO[k].name, 'posture', k, { cls: 'sm ' + (cur === k ? 'on' : 'ghost'), tip: '<h5>' + PO[k].name + '</h5>' + esc(PO[k].desc) + (n.flags.ld_depth && k === 'depth' ? '<hr>Defence in depth doctrine: twice as effective.' : '') + '<hr>Changing posture costs twenty days of reorganisation.' })).join('') + '</div>'; }
     const dord = ID.Doctrine.orderOf(n), okeys = ['barrage', 'airraid', 'reserves']; if (dord) okeys.unshift(dord.key);
     if (n.nwars) h += '<div class="styles orders">' + okeys.map((k) => { const ab = ID.Combat.ABIL[k], why = ID.Combat.abilBlock(G, n, k, ab.self ? null : -1), soft = why && (why.indexOf('Select') === 0); const cd = (n.cd['ab_' + k] || 0) - G.tick; const g = ID.Combat.abilGold(n, ab), ac = ID.Combat.abilCd(n, ab); return UI.btn(ab.name + (cd > 0 ? ' <span class="num">' + cd + 'd</span>' : ' <span class="num">' + (g ? g + 'g' : 'free') + '</span>'), 'abil', k, { cls: 'sm ' + (UI.aim === k ? 'on' : ab.doctrine ? 'dord' : 'ghost'), off: soft ? '' : why, tip: '<h5>' + ab.name + (ab.doctrine ? ' <span class="dim">· ' + esc(ID.ideo(n).name) + ' order</span>' : '') + '</h5>' + esc(ab.desc) + (ab.self ? '' : ab.range >= 999 ? '<hr>Click, then click the land of an enemy at war with you.' : '<hr>Click, then click enemy land within ' + ab.range + ' tiles of yours.') + '<br>Cost ' + (g ? g + ' gold' : 'nothing') + ' · every ' + ac + ' days' }); }).join('') + '</div>';
@@ -488,9 +523,12 @@
   const OFFER = { trade: ['offers a trade treaty', 'Income for both of you every month.'], nap: ['offers a non-aggression pact', 'Neither side may attack the other. Breaking it later costs you the trust of every state.'], ally: ['invites you into an alliance', 'You would be called into each other’s defensive wars.'], peace: ['offers peace on the present lines', 'Each side keeps what it holds, with a five-year truce.'] };
   UI.renderAlerts = function () {
     const G = UI.G, a = UI.alerts(), offers = (G.offers || []).filter((o) => G.nations[o.from].alive);
-    const key = JSON.stringify(a) + JSON.stringify(offers);
+    const key = JSON.stringify(a) + JSON.stringify(offers) + UI.alertsOpen;
     if (key === UI._alKey) return; UI._alKey = key;
-    $('#alerts').innerHTML = a.map((x) => '<button class="al' + (x.red ? ' r' : '') + '" data-act="' + (x.act || 'tab') + '" data-a=\'' + JSON.stringify(x.arg != null ? x.arg : x.tab) + '\'>' + x.text + '</button>').join('') +
+    const nAl = a.length + offers.length, hot = a.some((x) => x.red);
+    $('#alerts').classList.toggle('open', !!UI.alertsOpen); $('#alerts').classList.toggle('none', !nAl);
+    $('#alerts').innerHTML = (nAl ? '<button class="altog' + (hot ? ' r' : '') + (offers.length ? ' o' : '') + '" data-act="alertsTog">' + (UI.alertsOpen ? 'Hide ▴' : '⚠ ' + nAl + (offers.length ? ' · ' + offers.length + ' offer' + (offers.length > 1 ? 's' : '') : '')) + '</button>' : '') + // phones only (css)
+      a.map((x) => '<button class="al' + (x.red ? ' r' : '') + '" data-act="' + (x.act || 'tab') + '" data-a=\'' + JSON.stringify(x.arg != null ? x.arg : x.tab) + '\'>' + x.text + '</button>').join('') +
       offers.map((o, k) => { const f = G.nations[o.from]; return '<div class="al offer"' + tip('<h5>' + esc(f.name) + '</h5>' + OFFER[o.kind][1] + '<hr>Their opinion of you: <b>' + Math.round(ID.op(G, f.id, G.player)) + '</b>. The offer lapses ' + ID.dateOf(o.until).short + '.') + '><span>' + R.swatch(f) + '<b>' + esc(f.base) + '</b> ' + OFFER[o.kind][0] + '</span><span class="row nw">' + UI.btn('Accept', 'offer', [k, 1], { cls: 'sm' }) + UI.btn('Decline', 'offer', [k, 0], { cls: 'sm ghost' }) + '</span></div>'; }).join('');
     for (const t of TABS) { const el = document.querySelector('#tab-' + t[0] + ' .pip'); if (el) el.hidden = !a.some((x) => x.red && x.tab === t[0]); }
   };
@@ -587,9 +625,12 @@
   UI.keys = {};
   UI.init = function () {
     tipEl = $('#tip');
+    document.documentElement.classList.toggle('touch', UI.touch);
     document.addEventListener('click', (e) => {
       ID.Audio.unlock();
+      if (holdDone) { holdDone = false; e.preventDefault(); e.stopPropagation(); return; } // the finger was held for a tooltip, not a press
       const el = e.target.closest('[data-act]'); if (!el) return;
+      if (UI.compact && UI.alertsOpen && el.dataset.act !== 'alertsTog' && el.closest('#alerts') && !el.closest('.offer')) UI.alertsOpen = false;
       if (el.dataset.off) { UI.toast(el.dataset.off); ID.Audio.play('bad'); return; }
       const fn = acts[el.dataset.act]; if (!fn) return;
       let a = el.dataset.a; if (a != null) { try { a = JSON.parse(a); } catch (x) { /* plain string */ } }
@@ -603,10 +644,24 @@
       const lab = el.parentElement && el.parentElement.querySelector('[data-val]'); if (lab) lab.textContent = el.dataset.fmt === 'mob' ? (el.value / 10).toFixed(1) + '%' : el.value + '%';
     });
     document.addEventListener('change', (e) => { if (e.target.dataset && e.target.dataset.in) { UI.busy = false; if (UI.G && !$('#hud').hidden) UI.after(); } const fn = e.target.dataset && acts[e.target.dataset.change]; if (fn) fn(e.target.value, e.target); });
-    document.addEventListener('pointerdown', () => { UI.pointerDown = true; }, true);
-    document.addEventListener('pointerup', () => { setTimeout(() => { UI.pointerDown = false; UI.busy = false; }, 60); }, true);
+    document.addEventListener('pointerdown', (e) => {
+      UI.pointerDown = true;
+      if (e.pointerType === 'mouse') return;
+      /* A finger: press and hold anything with an explanation to read it. Lift and the press does nothing. */
+      lastTouch = performance.now(); fingerMode = true; holdDone = false; if (!tipEl.hidden) UI.hideTip();
+      clearTimeout(holdT); const t = e.target.closest ? e.target.closest('[data-tip]') : null;
+      if (!t || e.target.id === 'map') return;
+      holdAt = { x: e.clientX, y: e.clientY };
+      holdT = setTimeout(() => { holdT = 0; if (!t.isConnected) return; holdDone = true; mx = holdAt.x; my = holdAt.y; tipFor = t; fingerTip = true; UI.showTip(t.getAttribute('data-tip')); if (navigator.vibrate) try { navigator.vibrate(8); } catch (x) { /* no vibration */ } }, 460);
+    }, true);
+    document.addEventListener('pointermove', (e) => { if (holdT && holdAt && Math.hypot(e.clientX - holdAt.x, e.clientY - holdAt.y) > 10) { clearTimeout(holdT); holdT = 0; } }, true);
+    const endHold = () => { if (holdT) { clearTimeout(holdT); holdT = 0; } if (holdDone) setTimeout(() => { holdDone = false; }, 400); };
+    document.addEventListener('pointercancel', endHold, true);
+    document.addEventListener('pointerup', (e) => { if (e.pointerType !== 'mouse') { lastTouch = performance.now(); endHold(); } setTimeout(() => { UI.pointerDown = false; UI.busy = false; }, 60); }, true);
+    document.addEventListener('gesturestart', (e) => e.preventDefault()); // iOS: pinching the interface must not zoom the page
     document.addEventListener('mousemove', (e) => {
-      mx = e.clientX; my = e.clientY;
+      if (performance.now() - lastTouch < 1200) return; // the fake mousemove a tap produces
+      fingerMode = false; mx = e.clientX; my = e.clientY;
       const t = e.target.closest ? e.target.closest('[data-tip]') : null;
       if (t) { if (t !== tipFor) { tipFor = t; UI.showTip(t.getAttribute('data-tip')); } else placeTip(); }
       else if (tipFor) UI.hideTip();
@@ -623,7 +678,7 @@
   /* Enter the HUD for a game. */
   UI.start = function (G) {
     UI.G = G; UI.sel = -1; R.selected = -1; UI.tab = null; UI.focusNation = 0; UI.overShown = false; UI._alKey = ''; topKey = '';
-    $('#title').hidden = true; $('#hud').hidden = false; $('#drawer').hidden = true; $('#sel').hidden = true;
+    $('#title').hidden = true; $('#hud').hidden = false; $('#drawer').hidden = true; $('#sel').hidden = true; $('#hud').classList.remove('dopen', 'selopen'); UI.modesOpen = false; UI.alertsOpen = false;
     UI.renderRail(); UI.renderTop(true, true); UI.renderModes(); UI.renderAtk(); UI.renderAlerts(); UI.renderTicker();
     R.quiet = false; G.dirtyAll = true;
     const n = P(); R.cam.z = Math.max(R.minZoom() * 1.55, 4); R.focus(n.capital);

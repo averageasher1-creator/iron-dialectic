@@ -24,6 +24,22 @@
     { title: 'You are on your own', hl: '#tab-help', text: 'Win the war or make peace from the War panel. After that, the century is yours to lose. The Handbook (H) explains every system and all twenty-two ideologies. When the state falls, you will be told exactly why.', do: 'Good luck.', next: true, last: true },
   ];
 
+  /* What a finger does instead of a mouse and keys, step by step (same order as STEPS; null keeps the text). */
+  const TOUCH = {
+    0: { do: 'Drag the map to look around. Pinch to zoom. Tap any land to see what it is; press and hold it for a summary.' },
+    1: { do: 'Press and hold any number on the top band to see what it is made of. On a narrow screen the band scrolls sideways.' },
+    2: { do: 'Open the State panel: tap State on the tab bar.' },
+    3: { do: 'Press and hold the Workers to see exactly what is moving them.' },
+    5: { do: 'Open the Economy panel.' },
+    6: { do: 'Open the Laws panel, then press and hold a few options.' },
+    7: { do: 'Open the Programme panel and start one.' },
+    8: { do: 'Close the panel (✕), set Commit to about 30%, and tap Expand on the bar at the bottom.' },
+    9: { text: 'Time runs in days. The » button changes the speed from 1 to 5; the red button pauses. Dispatches will stop the clock when a decision is needed. Watch your columns push into the hinterland.', do: 'Tap the red pause button to start the clock.' },
+    10: { text: 'Alerts collect at the lower right; on a phone they wait behind the ⚠ button. Tap one to jump to the problem. Your neighbours have their own systems and their own ambitions.' },
+    11: { do: 'Tap enemy land, set Commit to about 40%, and tap Attack. Then open Orders on the bar and try a barrage on their line.' },
+    12: { do: 'Switch the map to Supply, then back to Political. Recall an offensive from the bar if it stalls.' },
+  };
+  const txt = (G, k) => { const t = UI.touch && TOUCH[G.tut.step]; return (t && t[k]) || STEPS[G.tut.step][k]; };
   let lastStep = -1, hlEl = null, hlAt = 0;
   function clearHl() { if (hlEl) hlEl.classList.remove('hl'); hlEl = null; }
   Tu.start = function (G) { lastStep = -1; render(G); };
@@ -31,7 +47,7 @@
     const st = STEPS[G.tut.step]; const el = $('#coach');
     if (!st) { el.hidden = true; clearHl(); return; }
     el.className = G.tut.step >= 9 ? '' : '';
-    el.innerHTML = '<div class="k">LEARNING TO GOVERN<span>' + (G.tut.step + 1) + ' / ' + STEPS.length + '</span></div><div class="bd"><h3>' + esc(st.title) + '</h3><p>' + esc(st.text) + '</p><p class="do">' + esc(st.do) + '</p><div class="row">' +
+    el.innerHTML = '<div class="k">LEARNING TO GOVERN<span>' + (G.tut.step + 1) + ' / ' + STEPS.length + '</span></div><div class="bd"><h3>' + esc(st.title) + '</h3><p>' + esc(txt(G, 'text')) + '</p><p class="do">' + esc(txt(G, 'do')) + '</p><div class="row">' +
       (st.next ? UI.btn(st.last ? 'Finish' : 'Next', 'tutNext', null, { cls: 'red' }) : '<span class="dim" style="font-size:14px">Do this to continue.</span>') + '<span class="sp"></span>' + UI.btn('Skip tutorial', 'tutSkip', null, { cls: 'sm ghost' }) + '</div></div>';
     el.hidden = false; lastStep = G.tut.step;
   }
@@ -58,7 +74,7 @@
     hlAt += dt;
     if (hlAt > 0.3) {
       hlAt = 0; const want = st.hl ? document.querySelector(st.hl) : null;
-      if (want !== hlEl) { clearHl(); if (want) { want.classList.add('hl'); hlEl = want; } }
+      if (want !== hlEl) { clearHl(); if (want) { want.classList.add('hl'); hlEl = want; if (UI.compact && want.scrollIntoView) try { want.scrollIntoView({ block: 'nearest', inline: 'nearest', behavior: 'smooth' }); } catch (x) { /* old browser */ } } }
       else if (hlEl && !hlEl.classList.contains('hl')) hlEl.classList.add('hl');
     }
     $('#coach').classList.toggle('right', !!UI.tab);

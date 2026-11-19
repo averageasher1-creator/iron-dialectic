@@ -40,6 +40,12 @@ Everything works with a trackpad. Nothing needs a right-click.
 Hover anything for an explanation. If two-finger scrolling zooms instead of panning on your
 machine, change it in **Settings**.
 
+**On a phone or tablet**, either way up: drag to pan, pinch to zoom, tap to select, double-tap to
+attack or expand, and press and hold anything (a tile, a number, a button) for its explanation. The
+» button at the top changes speed; the Map and ⚠ buttons under the top band open the map modes and
+the alerts; "Orders" on the war bar folds out posture, barrages and attack styles. Tap an aimed order
+again to cancel it.
+
 ## What is in it
 
 - **25 ideologies** in six families, each with its own economy model (market, mixed, plan,

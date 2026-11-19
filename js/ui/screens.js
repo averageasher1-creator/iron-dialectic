@@ -39,7 +39,7 @@
     Sc.applyChallenge(G, false);
     UI.start(G);
     if (G.tut && ID.Tutorial) ID.Tutorial.start(G); else $('#coach').hidden = true;
-    if (G.paused && !G.tut) UI.toast('The clock is stopped. Press Space to begin.', true);
+    if (G.paused && !G.tut) UI.toast(UI.touch ? 'The clock is stopped. Tap the red pause button at the top to begin.' : 'The clock is stopped. Press Space to begin.', true);
   };
 
   Sc.applyChallenge = function (G, fresh) {
@@ -83,7 +83,7 @@
       btn('New campaign <small>1910–1976</small>', 'newGame', null, { cls: 'big' + (last ? '' : ' red') }) +
       btn('Learn to play <small>guided, 15 minutes</small>', 'tutorial', null, { cls: 'big' }) +
       '<div class="row">' + btn('Load', 'loadMenu', null, { cls: 'ghost' }) + btn('Challenges <small>' + unlocked + ' / ' + ID.CHALLENGES.length + '</small>', 'challenges', null, { cls: 'ghost' }) + btn('Records <small>' + meta.runs.length + '</small>', 'records', null, { cls: 'ghost' }) + btn('Handbook', 'handbookT', null, { cls: 'ghost' }) + btn('Settings', 'settings', null, { cls: 'ghost' }) + '<a class="b ghost" href="https://discord.gg/bURjWZdgy7" target="_blank" rel="noopener" style="text-decoration:none">Discord</a></div>' +
-      '</div><div class="foot">Plays entirely with left-click, drag, scroll and keys. Saves stay in this browser.</div>';
+      '</div><div class="foot">' + (UI.touch ? 'Plays with tap, drag and pinch; press and hold anything to have it explained.' : 'Plays entirely with left-click, drag, scroll and keys.') + ' Saves stay in this browser.</div>';
   };
 
   /* ---------------------------------------------------------------- campaign setup */
@@ -120,6 +120,8 @@
     const ns = ID.alive(SG).slice(); if (S.scenario === 'random') ns.sort((a, b) => b.tiles - a.tiles);
     const ch = S.challenge ? ID.CHALLENGES.find((c) => c.id === S.challenge) : null;
     let h = '<div class="pick"><div class="dh"><h2>' + (ch ? esc(ch.name) : 'New campaign') + '</h2><button class="x" data-act="toTitle"' + tip('Back to the title screen') + '>✕</button></div><div class="db">';
+    /* On a phone the nation card cannot float beside the list: it leads the list instead. */
+    if (UI.compact) h += '<div class="pickcard inl" id="pickcard">' + pickCard() + '</div>';
     if (ch) h += '<div class="note red">' + esc(ch.desc) + '</div>';
     else {
       h += '<div class="field"><label>World</label><div class="seg">' + [['meridia', 'The Three Continents'], ['random', 'Random world']].map((x) => '<button class="' + (S.scenario === x[0] ? 'on' : '') + '" data-act="setScen" data-a=\'"' + x[0] + '"\'>' + x[1] + '</button>').join('') + '</div><small>' + (S.scenario === 'meridia' ? esc(ID.SCENARIOS.meridia.desc) : 'A new map from a seed. Share the seed and someone else gets the same world.') + '</small></div>';
@@ -133,13 +135,13 @@
         : 'No scripted events. Every country picks its own programme, and the century goes wherever it goes.') + '</small></div>'; }
       h += '<div class="field"><label>Difficulty</label><div class="seg">' + Object.keys(ID.DIFFICULTY).map((k) => '<button class="' + (S.difficulty === k ? 'on' : '') + '" data-act="setDiff" data-a=\'"' + k + '"\'' + tip(ID.DIFFICULTY[k].desc) + '>' + ID.DIFFICULTY[k].name + '</button>').join('') + '</div><small>' + esc(ID.DIFFICULTY[S.difficulty].desc) + '</small></div>';
     }
-    h += '<div class="field"><label>Choose a state <span class="dim" style="font-weight:500">— or click one on the map</span></label>';
+    h += '<div class="field"><label>Choose a state' + (UI.compact ? '' : ' <span class="dim" style="font-weight:500">— or click one on the map</span>') + '</label>';
     for (const n of ns) {
       const sit = ID.SITUATIONS[n.sit] || ID.SITUATIONS.middling;
       h += '<button class="nrow' + (n.id === S.nation ? ' on' : '') + '" data-act="pickNation" data-a="' + n.id + '">' + ID.Flags.html(n, 'mini') + '<b>' + esc(n.base) + '</b>' + stars(sit.diff) + '<small>' + esc(ID.IDEOLOGIES[n.ideo].name) + ' · ' + esc(sit.name.toLowerCase()) + '</small></button>';
     }
     h += '</div></div><div class="ft">' + btn('Begin', 'begin', null, { cls: 'big red' }) + '<span class="sp"></span>' + btn('Back', 'toTitle', null, { cls: 'ghost' }) + '</div></div>';
-    h += '<div class="pickcard" id="pickcard">' + pickCard() + '</div>';
+    if (!UI.compact) h += '<div class="pickcard" id="pickcard">' + pickCard() + '</div>';
     t.innerHTML = h;
   }
   function pickCard() {
@@ -158,6 +160,8 @@
     h += '<div class="row" style="margin-top:6px"><button class="b sm ghost" data-act="handbookT" data-a=\'"i:' + ideo + '"\'>The theory behind it</button></div>';
     return h;
   }
+  /* The screen changed size or turned: lay the setup screen out again. */
+  Sc.relayout = function () { if (ID.Main.mode === 'setup' && SG) renderSetup(); else if (ID.Main.mode === 'title' && !$('#title').hidden && !$('#title').classList.contains('setup')) { const f = $('#title .foot'); if (f) f.textContent = (UI.touch ? 'Plays with tap, drag and pinch; press and hold anything to have it explained.' : 'Plays entirely with left-click, drag, scroll and keys.') + ' Saves stay in this browser.'; } };
   Sc.pickAt = function (i) {
     if (!SG || i < 0) return; const o = SG.owner[i]; if (!o) return;
     S.nation = o; S.ideo = null; R.selected = SG.nations[o].capital; renderSetup(); ID.Audio.play('click');
@@ -224,7 +228,7 @@
   acts.loadSlot = (s) => {
     const raw = store.raw('id_save_' + s); if (!raw) { UI.toast('That slot is empty.'); return; }
     let G = null; try { G = ID.Game.load(raw); } catch (e) { console.error(e); UI.toast('That save could not be read.'); return; }
-    G.paused = true; Sc.enterGame(G); UI.toast('Loaded ' + slotName(s) + '. Press Space to resume.', true);
+    G.paused = true; Sc.enterGame(G); UI.toast('Loaded ' + slotName(s) + (UI.touch ? '. Tap the pause button to resume.' : '. Press Space to resume.'), true);
   };
   acts.settings = () => {
     const s = UI.settings;

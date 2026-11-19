@@ -739,6 +739,38 @@ save and reload through `localStorage`. Also seen: a running thermonuclear progr
 formula tooltip) and a thermonuclear strike from the tile card (51% of Aurelia dead, the region white with
 irradiation). Not seen in the browser: the old-save path (headless only), the AI deciding to use the bomb.
 
+## Session 12: phones and tablets
+
+The game now plays on a phone in either orientation. Desktop layout is unchanged (screenshots at
+1440×900 match the previous build pixel for pixel).
+
+- **Two switches.** `UI.touch` (`(pointer: coarse)`) changes wording ("tap", "press and hold") and
+  turns on press-and-hold tooltips; `UI.compact` (`(max-width: 760px), (max-height: 500px)`) is the
+  phone layout. Both live at the top of `js/ui/ui.js` and re-render the HUD when they change. The
+  `<html>` element carries `.touch` for CSS.
+- **CSS.** Everything is in the last section of `css/style.css` ("phones and tablets"): a shared
+  compact block, a portrait block (`max-width: 760px and min-height: 501px`: panel tabs on a bar at
+  the bottom, stats on a second, sideways-scrolling row of the top band, selection as a bottom
+  sheet) and a landscape block (`max-height: 500px`: left rail scrolls, one-row top band, selection
+  on the right). Key off height for landscape: an iPhone on its side is only 750px wide.
+- **Folding.** On a phone the map modes and the alerts each fold into one button (`acts.modesTog`,
+  `acts.alertsTog`); the war bar folds its posture/order/style rows behind "Orders" (`acts.atkTog`);
+  numbered speed buttons give way to one cycling button (`acts.speedCycle`). With a panel open the
+  floating cards hide (`#hud.dopen`); in portrait the war bar hides under the selection sheet
+  (`#hud.selopen`). Setup puts the nation card inline at the top of the list (`.pickcard.inl`).
+- **Touch input.** Holding a finger 460 ms on anything with `data-tip` shows its tooltip above the
+  finger and swallows the click; holding on the map shows the tile summary the mouse gets on hover
+  (`tileTip` in `js/ui/main.js`). The fake mousemove a tap produces is ignored, and `UI.retip` only
+  refreshes a tooltip already open while the last input was a finger, so tooltips no longer stick
+  after taps. Tapping an aimed order again cancels it (there is no Esc). Autosave also runs on
+  `pagehide` and when the tab is hidden on a touch device. The viewport disallows page zoom and iOS
+  `gesturestart` is cancelled, so pinching the interface never zooms the page.
+- **Wording.** The tutorial has a `TOUCH` table of replacement texts by step; the Handbook's
+  first page gains an "On a touch screen" controls table; title and toasts say tap, not Space.
+- Checked in Chromium emulation (iPhone 13 both ways, iPhone SE, Pixel 7) with real touch events:
+  tap, hold, drag, folding, speed, modes, panels, dialogs, programme tree, tutorial. Not checked
+  on a physical device.
+
 ## Published (end of session 2)
 
 - Playable artifact: slug `b44285db-2e8b-4266-bfe0-39315542a8b3` (https://claude.ai/artifact/PG38qVqd6iMyayLf4gaVKx), live version `1794778445-ed93` after the session 9 review fixes,
