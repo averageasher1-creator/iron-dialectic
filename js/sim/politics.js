@@ -6,7 +6,7 @@
   const clamp = ID.clamp, MAXN = ID.MAXN, B = ID.B;
   const P = (ID.Politics = {});
   const F = ID.FACTION_IDS;
-  const ELECTORAL = { liberal: 1, socdem: 1, demsoc: 1, marketsoc: 1, conmon: 1, natpop: 1, agrarian: 1, minarchy: 1 };
+  const ELECTORAL = { liberal: 1, socdem: 1, demsoc: 1, marketsoc: 1, conmon: 1, natpop: 1, agrarian: 1, minarchy: 1, leftacc: 1 };
   const c100 = (v) => clamp(v, 0, 100);
 
   P.initNation = function (G, n) {
@@ -302,7 +302,7 @@
     if (n.ideo === 'junta') return G.rng.chance(0.5) ? 'personalist' : 'liberal';
     if (n.ideo === 'personalist') return 'junta';
     if (ID.ideo(n).family === 'socialist' && n.fs.bureaucracy < 40 && G.rng.chance(0.3)) return 'personalist';
-    return G.rng.chance(0.75) ? 'junta' : G.rng.pick(['personalist', 'corporatist', 'natpop']);
+    return G.rng.chance(0.75) ? 'junta' : G.rng.pick(['personalist', 'corporatist', 'natpop', 'natsyn']);
   };
   P.coup = function (G, n, backer) {
     n.a.coupAt = G.tick; n.a.coupBoost = 0; // a foreign plot's odds (set in Diplomacy.plotSignal) belong to that plot only
@@ -433,6 +433,9 @@
   /* ---------------------------------------------------------------- provinces (all, monthly) */
   function classSupport(n, ideo, urban) {
     const I = ID.IDEOLOGIES[ideo], fs = n.fs;
+    if (ideo === 'natsyn') return fs.workers * 0.5 + fs.military * 0.5;
+    if (ideo === 'leftacc') return fs.intelligentsia * 0.5 + fs.workers * 0.5;
+    if (ideo === 'rightacc') return fs.capital * 0.6 + fs.intelligentsia * 0.4;
     switch (I.family) {
       case 'socialist': case 'anarchist': return ideo === 'mao' || ideo === 'ancom' ? fs.peasants * 0.7 + fs.workers * 0.3 : urban * fs.workers + (1 - urban) * (fs.workers * 0.4 + fs.peasants * 0.6);
       case 'liberal': return fs.intelligentsia * 0.5 + fs.capital * 0.3 + fs.workers * 0.2;
@@ -459,6 +462,12 @@
       // the post-colonial ideas: strongest where foreigners rule or the secular nation has failed
       if (I.id === 'thirdpos') w = (n.dep ? 14 : 0) + (era >= 2 ? (50 - fs.peasants) * 0.25 + (50 - fs.military) * 0.15 : 0);
       else if (I.id === 'revival') w = Math.max(0, w) * 0.5 + (n.flags.discredited ? 12 : 0) + (n.dep ? 8 : 0) + (era >= 3 ? (50 - fs.clergy) * 0.2 * u : 0);
+      // session 12: the self-reliant party state is rare; the national syndicalists recruit among angry workers in hard times;
+      // the accelerationists are ideas of the machine age, for the cities of the advanced countries
+      if (I.id === 'juche') w = Math.max(0, w) * 0.3;
+      else if (I.id === 'natsyn') w = u * (55 - fs.workers) * 0.45 + (50 - fs.military) * 0.15 + (50 - n.stab) * 0.35 + (n.depression ? 10 : 0) + (n.lostWarAt != null && n.age - n.lostWarAt < 60 ? 6 : 0);
+      else if (I.id === 'leftacc') w = era >= 2 && n.tech.ind >= 4 ? u * ((50 - fs.workers) * 0.25 + (52 - fs.intelligentsia) * 0.25) : 0;
+      else if (I.id === 'rightacc') w = era >= 2 && n.tech.ind >= 4 ? u * (50 - fs.capital) * 0.07 : 0;
       if (G.scenario === 'meridia' && (I.id === 'thirdpos' || I.id === 'pannat' || I.id === 'revival')) w *= Pr.region === 'old' ? 2 : 0.35;
       if (w <= 0) return 0;
       const dist = ID.ideoDist(n.ideo, I.id);
@@ -696,7 +705,7 @@
     let best = null, bv = 0;
     for (const k in n.drift) if (ELECTORAL[k] && n.drift[k] > bv) { bv = n.drift[k]; best = k; }
     if (best) return best;
-    const map = { liberal: n.fs.workers < 45 ? 'socdem' : 'natpop', socdem: n.fs.capital > n.fs.workers ? 'liberal' : 'demsoc', demsoc: 'socdem', marketsoc: 'demsoc', conmon: 'liberal', minarchy: 'liberal' };
+    const map = { liberal: n.fs.workers < 45 ? 'socdem' : 'natpop', socdem: n.fs.capital > n.fs.workers ? 'liberal' : 'demsoc', demsoc: 'socdem', marketsoc: 'demsoc', conmon: 'liberal', minarchy: 'liberal', leftacc: 'socdem' };
     return map[n.ideo] || 'liberal';
   };
   P.election = function (G, n) {

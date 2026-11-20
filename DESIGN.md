@@ -5,7 +5,7 @@ everything the state can do follows from what it believes and how it is organise
 
 ## 1. Pillars
 
-1. **Ideology is the rulebook, not a bonus.** Each of the 25 ideologies swaps out parts of the
+1. **Ideology is the rulebook, not a bonus.** Each of the 29 ideologies swaps out parts of the
    rules: who sets the budget, how troops are raised, which factions can bring you down, where
    legitimacy comes from, what you are allowed to order directly.
 2. **War is simple to operate and hard to master.** OpenFront-style: one troop pool, a

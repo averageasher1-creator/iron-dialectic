@@ -481,7 +481,7 @@
       { id: 'tp_nation', name: 'Nationalise the foreign companies', desc: 'Banks, insurers, the cotton exporters and the canal offices: one decree, signed at a rally, read on the radio.', cost: { auth: 20 }, cd: 120, sig: 14, fx: [['sup', 'capital', -12], ['sup', 'workers', 6], ['gold', 120], ['opAll', -3], ['fn', (G, n) => { if (ID.Sov) ID.Sov.nationaliseAll(G, n); }]], ai: (n, v) => v < 45 },
       { id: 'tp_land', name: 'Land reform', desc: 'No family may own more than two hundred acres. The pashas’ estates go to their tenants, the pashas to the club.', cost: { auth: 15 }, cd: 60, sig: 6, fx: [['sup', 'peasants', 12], ['sup', 'capital', -6], ['law', 'land', 'smallholder'], ['mod', 'unrest', -4, 36, 'Land reform']], ai: (n) => n.fs.peasants < 50 },
     ],
-    war: { name: 'The army of the people', desc: 'Conscripts who are told they defend a revolution: defence at home +15%, and the front holds a third longer before it breaks.', dp: { homeDef: 0.15, holdFast: 0.3 } },
+    war: { name: 'The army of the people', desc: 'Conscripts who are told they defend a revolution: defence at home +15%, and the front holds a third longer before it breaks.', dp: { homeDef: 1.15, holdFast: 0.3 } },
     order: { key: 'tp_volunteers', name: 'Volunteers from the brother peoples', gold: 60, cd: 300, self: 1,
       desc: 'Volunteers from across the region answer the radio: troops equal to 1% of the population, and every state of our family of ideas thinks better of us.',
       run: (G, n) => { const a = draft(G, n, 0.01, 0); for (const o of ID.alive(G)) if (o !== n && ID.ideo(o).family === ID.ideo(n).family) ID.addOp(G, o.id, n.id, 4); return ID.fmtPop(a) + ' volunteers arrive.'; }, ai: (G, n) => losing(n) },
@@ -517,10 +517,87 @@
       { id: 'rv_charity', name: 'The foundations of the poor', desc: 'The confiscated fortunes of the old regime become charitable foundations that feed, house and employ the faithful.', cost: { auth: 10 }, cd: 48, sig: 6, fx: [['sup', 'peasants', 6], ['sup', 'workers', 6], ['mod', 'ls', 2, 60, 'The foundations'], ['corr', 4]], ai: (n) => n.ls < 45 },
       { id: 'rv_embassy', name: 'Storm the embassy', desc: 'Students climb the walls of the great power’s embassy and take its diplomats hostage. The country cheers; the world does not forget.', cost: { auth: 10 }, cd: 240, sig: 18, fx: [['opAll', -10], ['fervor', 10], ['fn', (G, n) => { n.flags.martyrs = 1; }]], ai: (n, v) => v < 35 },
     ],
-    war: { name: 'The martyrs’ war', desc: 'Human waves and a cult of martyrdom: assaults cost the enemy more, war weariness grows half as fast, and occupied provinces resist.', dp: { martyr: 0.3, wePace: -0.5, bleed: 0.15 } },
+    war: { name: 'The martyrs’ war', desc: 'Human waves and a cult of martyrdom: assaults cost the enemy more, war weariness grows half as fast, and occupied provinces resist.', dp: { martyr: 0.3, wePace: 0.5, bleed: 1.15 } },
     order: { key: 'rv_waves', name: 'The human waves', gold: 0, cd: 360, self: 1,
       desc: 'Volunteers, some of them boys, walk across the minefields: troops equal to 2% of the population, at the cost of equipment and a grief that lasts.',
       run: (G, n) => { const a = draft(G, n, 0.02, 0.05); n.fervor = Math.min(100, n.fervor + 8); ID.addMod(n, 'growth', -0.06, 24, 'The martyrs'); return ID.fmtPop(a) + ' volunteers march to the front.'; }, ai: (G, n) => losing(n) || n.we > 45 },
+  };
+
+  /* ================================================================ session 12 */
+  D.juche = {
+    name: 'Juche', gauge: 'Self-reliance', init: 60,
+    desc: 'The regime’s whole claim is that the nation needs nobody. Autarky, the plan, the army and the Leader feed it; foreign trade, dependence, famine and defeat drain it. High self-reliance holds the country together and makes it a fortress; it also makes it poor.',
+    drift: (n) => -0.2 + (n.laws.trade === 'autarky' ? 0.5 : n.laws.trade === 'free' ? -0.7 : -0.15) + (n.nwars && !losing(n) ? 0.2 : 0) - (losing(n) ? 0.8 : 0) - (n.famine ? 0.6 : 0) - (n.dep ? 1 : 0) + (n.charisma - 50) * 0.01,
+    fx: (n, v) => ({ legit: (v - 50) * 0.1, stab: (v - 50) * 0.04, def: (v - 50) * 0.002, eff: (50 - v) * 0.0008, trade: (50 - v) * 0.003 }),
+    low: 'Low self-reliance: a fortress that depends on its neighbours’ grain.',
+    high: 'High self-reliance: sealed, armed and certain, and nobody can see in.',
+    acts: [
+      { id: 'jc_chollima', name: 'The Chollima movement', desc: 'The winged horse that covers a thousand li a day: every work brigade pledges to double its norm, and the radio reads out the names of those that do not.', cost: { auth: 10 }, cd: 36, sig: 8, fx: [['mod', 'prod', 0.07, 24, 'Chollima speed'], ['mod', 'ls', -2, 24, 'Chollima speed'], ['sup', 'workers', -3]], ai: (n, v) => v < 70 && !n.famine },
+      { id: 'jc_songun', name: 'Military first', desc: 'The army before the working class, the army before bread. Rations, steel and the Leader’s visits go to the barracks first.', cost: { auth: 15 }, cd: 60, sig: 6, fx: [['mod', 'atk', 0.06, 60, 'Military first'], ['mod', 'def', 0.06, 60, 'Military first'], ['mod', 'ls', -3, 60, 'Military first'], ['sup', 'military', 10]], ai: (n) => n.nwars > 0 || !!n.a.threatened },
+      { id: 'jc_heir', name: 'Name the son', desc: 'The Leader’s son receives a title nobody had heard of, a birthplace on a sacred mountain and a portrait in every office. The old guerrillas swallow hard.', cost: { auth: 20 }, cd: 240, sig: 6, can: (n) => (n.flags.heir ? 'An heir is already named.' : ''), fx: [['flag', 'heir'], ['tradition', 10], ['sup', 'military', -4], ['mod', 'coup', -0.2, 120, 'The succession settled']], ai: (n) => n.leader.age > 60 },
+      { id: 'jc_march', name: 'The arduous march', desc: 'The rations are halved and the radio explains that the guerrillas ate grass in the mountains and won. The country tightens its belt and asks nothing.', cost: { auth: 10 }, cd: 60, sig: 10, fx: [['mod', 'unrest', -5, 12, 'The arduous march'], ['mod', 'growth', -0.05, 12, 'The arduous march'], ['charisma', 4]], ai: (n) => !!n.famine || n.ls < 30 },
+    ],
+    war: { name: 'The fortress country', desc: 'Every hill is a tunnel and every village a militia: home defence +20%, the capital held 40% harder, and the front holds a quarter longer before it breaks.', dp: { homeDef: 1.2, capitalDef: 1.4, holdFast: 0.25 } },
+    order: { key: 'jc_reserve', name: 'Call up the Red Guards of Workers and Peasants', gold: 0, cd: 360, self: 1,
+      desc: 'The reserve militia, a tenth of the country, leaves the fields and factories: troops equal to 3% of the population, and industry −8% for six months.',
+      run: (G, n) => { const a = draft(G, n, 0.03, 0.04); ID.addMod(n, 'prod', -0.08, 6, 'The reserve called up'); return ID.fmtPop(a) + ' reservists take up their rifles.'; }, ai: (G, n) => losing(n) },
+  };
+
+  D.natsyn = {
+    name: 'The National Revolution', gauge: 'Syndical mobilisation', init: 60,
+    desc: 'The movement lives by marching: the squads, the rallies, the syndicates that bring the factory into the nation. The workers’ loyalty, victories and fervour feed it; the bosses buying their way into the syndicates and months of quiet government drain it.',
+    drift: (n) => -0.35 + (S(n, 'workers') - 50) * 0.02 - (Pw(n, 'capital') > 25 ? 0.5 : 0) + (n.nwars && !losing(n) ? 0.4 : 0) - (losing(n) ? 0.9 : 0) + (n.fervor - 50) * 0.008,
+    fx: (n, v) => ({ legit: (v - 50) * 0.09, prod: (v - 50) * 0.001, atk: (v - 50) * 0.0015, unrest: (50 - v) * 0.04 }),
+    low: 'Low mobilisation: the syndicates are offices and the shirts hang in wardrobes.',
+    high: 'High mobilisation: every factory gate is a parade ground.',
+    acts: [
+      { id: 'ns_vertical', name: 'The vertical syndicates', desc: 'One union per branch, from the owner to the apprentice, with a delegate of the movement in the chair.', cost: { auth: 15 }, cd: 60, sig: 10, fx: [['sup', 'workers', 8], ['sup', 'capital', -6], ['mod', 'prod', 0.04, 48, 'Vertical syndicates'], ['law', 'labor', 'company']], ai: (n, v) => v < 55 },
+      { id: 'ns_squads', name: 'Send in the squads', desc: 'The militia breaks up the strikes, burns the opposition’s print shop and calls it the national revolution.', cost: { auth: 10 }, cd: 24, sig: 8, fx: [['mod', 'unrest', -4, 12, 'The squads'], ['grievance', 8], ['sup', 'intelligentsia', -6], ['fervor', 4]], ai: (n) => n.stab < 45 },
+      { id: 'ns_banks', name: 'Nationalise the banks', desc: 'The movement’s oldest promise. Capital had hoped it was only a slogan.', cost: { auth: 25 }, cd: 120, sig: 12, fx: [['sup', 'capital', -14], ['sup', 'workers', 6], ['gold', 150], ['debtPct', -0.3], ['conf', -10]], ai: (n, v) => v < 45 && n.gold < 100 },
+      { id: 'ns_myth', name: 'The myth of the general strike', desc: 'Not a programme but an image: the day the whole nation downs tools and rises as one. A day of marches, and a week of lost production.', cost: { gold: 40 }, cd: 36, sig: 10, fx: [['fervor', 8], ['charisma', 3], ['mod', 'prod', -0.04, 3, 'The great demonstration']], ai: (n, v) => v < 45 && n.gold > 80 },
+    ],
+    war: { name: 'Shock squads', desc: 'Militia veterans lead every assault: attack +6% and a tenth fewer losses in attack, but lose a tenth of the homeland and morale falls by a fifth.', dp: { atkMul: 1.06, aloss: 0.9, brittle: 0.2 } },
+    order: { key: 'ns_strike', name: 'The national strike across the border', gold: 50, cd: 300, target: 1, range: 999,
+      desc: 'The movement’s sections in the enemy’s factories down tools in the name of their nation: its industry −12% for three months, its workers turn on their government, and our movement grows there.',
+      run: (G, n, t) => { ID.addMod(t, 'prod', -0.12, 3, 'National strike'); t.fs.workers = clamp(t.fs.workers - 6, 0, 100); ID.docSeed(G, t, 'natsyn', 8, 3, n.id); return 'The factories of ' + t.base + ' fall silent.'; }, ai: (G, n) => n.nwars > 0 },
+  };
+
+  D.leftacc = {
+    name: 'Full Automation', gauge: 'Automation', init: 45,
+    desc: 'How much of the work the machines now do. Science spending and industry push it up; a slump or a lost war stalls it. It raises output and living standards, but when it runs ahead of the welfare budget the displaced fill the streets.',
+    drift: (n) => -0.3 + ((n.budget.science || 0) - 0.12) * 8 + (n.tech.ind - 3) * 0.12 - (n.depression ? 0.4 : 0) - (losing(n) ? 0.5 : 0),
+    fx: (n, v) => { const gap = v - 40 - (n.budget.welfare || 0) * 100; return { prod: (v - 50) * 0.002, eff: (v - 50) * 0.001, ls: (v - 50) * 0.05, legit: (v - 50) * 0.06, unrest: gap > 0 ? gap * 0.06 : 0 }; },
+    low: 'Low automation: a party of futurists running a nineteenth-century economy.',
+    high: 'High automation: the four-day week, then the three-day week.',
+    acts: [
+      { id: 'la_ubi', name: 'The universal basic income', desc: 'A cheque every month for every citizen, whether or not the machines left them a job.', cost: { gold: 120 }, cd: 60, sig: 6, fx: [['mod', 'ls', 3, 60, 'Basic income'], ['mod', 'unrest', -3, 60, 'Basic income'], ['sup', 'workers', 6], ['sup', 'capital', -4]], ai: (n) => n.gold > 220 },
+      { id: 'la_week', name: 'Shorten the working week', desc: 'Thirty-five hours, then thirty: the machines do the rest.', cost: { auth: 15 }, cd: 48, sig: 8, can: (n) => ((n.sig || 0) < 40 ? 'The machines cannot carry it yet (automation 40).' : ''), fx: [['sup', 'workers', 10], ['particip', 6], ['mod', 'ls', 2, 36, 'Free time'], ['mod', 'prod', -0.03, 36, 'A shorter week']], ai: (n, v) => v > 55 },
+      { id: 'la_platform', name: 'Seize the platforms', desc: 'The telephone exchanges, the railway timetables and the great firms’ punched-card offices taken into common ownership and opened to everyone.', cost: { auth: 20 }, cd: 120, sig: 12, fx: [['sup', 'capital', -12], ['mod', 'eff', 0.05, 120, 'Common platforms'], ['tech', 150]], ai: (n, v) => v < 50 },
+      { id: 'la_future', name: 'Invent the future', desc: 'World fairs, science fiction on the radio and a ministry of the future: the left must promise something again.', cost: { gold: 50 }, cd: 24, sig: 6, fx: [['sup', 'intelligentsia', 6], ['legitmod', 3, 24, 'The future'], ['mod', 'sci', 0.05, 24, 'Ministry of the future']], ai: (n, v) => v < 60 && n.gold > 100 },
+    ],
+    war: { name: 'Machines instead of men', desc: 'Equipment and logistics before manpower: attacks lose a fifth fewer men, the army re-equips half again as fast, and a stronger industry than the enemy’s tells.', dp: { aloss: 0.82, equipRegen: 1.5, materiel: 1 } },
+    order: { key: 'la_automate', name: 'Automate the front', gold: 80, cd: 300, self: 1,
+      desc: 'Every automated line is turned over to the front for three months: equipment restored at once and fronts move a fifth faster.',
+      run: (G, n) => { n.equip = Math.max(n.equip, 1.1); ID.addMod(n, 'speed', 0.2, 3, 'Automated front'); return 'The factories switch to the front overnight.'; }, ai: (G, n) => n.nwars > 0 && n.equip < 0.9 },
+  };
+
+  D.rightacc = {
+    name: 'The Runaway Machine', gauge: 'Acceleration', init: 55,
+    desc: 'The speed of the process. Business confidence, banned unions and a thin welfare budget push it up; slumps, strikes, welfare and defeat brake it. The faster it runs, the richer the shareholders and the angrier everyone else.',
+    drift: (n) => -0.3 + ((n.conf || 50) - 50) * 0.02 - (n.depression ? 1.2 : 0) + ((n.budget.welfare || 0) > 0.08 ? -0.4 : 0.1) + (n.laws.labor === 'banned' ? 0.2 : n.laws.labor === 'free' ? -0.2 : 0) - (n.strike ? 0.4 : 0) - (losing(n) ? 0.6 : 0),
+    fx: (n, v) => ({ prod: (v - 50) * 0.0025, sci: (v - 50) * 0.002, conf: (v - 50) * 0.08, legit: (v - 50) * 0.06, unrest: Math.max(0, v - 45) * 0.06 }),
+    low: 'Low acceleration: an ordinary oligarchy in an expensive suit.',
+    high: 'High acceleration: a new skyline every year, and a shanty town under it.',
+    acts: [
+      { id: 'ra_zones', name: 'Charter zones', desc: 'Enclaves with their own law, their own courts and no taxes, leased to whoever bids highest.', cost: { auth: 10 }, cd: 48, sig: 10, fx: [['gold', 120], ['sup', 'capital', 6], ['mod', 'trade', 0.06, 60, 'Charter zones'], ['mod', 'unrest', 2, 60, 'Charter zones']], ai: (n, v) => v < 60 },
+      { id: 'ra_exit', name: 'Free exit', desc: 'Anyone who dislikes the company may leave. Many do; the ones who stay stop complaining.', cost: { auth: 10 }, cd: 60, sig: 6, fx: [['pop', -0.02], ['mod', 'unrest', -5, 36, 'Free exit'], ['sup', 'workers', 4]], ai: (n) => (n.a.unrest || 0) > 30 },
+      { id: 'ra_dissolve', name: 'Dissolve the last regulations', desc: 'The labour code, the factory inspectorate and the central bank’s rate committee, abolished in one board meeting.', cost: { auth: 20 }, cd: 120, sig: 14, fx: [['law', 'labor', 'banned'], ['sup', 'workers', -10], ['sup', 'capital', 10], ['conf', 10]], ai: (n, v) => v < 45 },
+      { id: 'ra_shares', name: 'Citizenship as shares', desc: 'Every resident becomes a shareholder: dividends for the loyal, and votes counted by holding.', cost: { gold: 60 }, cd: 48, sig: 6, fx: [['sup', 'capital', 4], ['sup', 'intelligentsia', 4], ['mod', 'stab', 4, 36, 'Citizen shareholders'], ['mod', 'ls', 1, 36, 'Dividends']], ai: (n) => n.stab < 45 && n.gold > 120 },
+    ],
+    war: { name: 'War as a business', desc: 'Contractors fight well while the money lasts: a stronger industry than the enemy’s tells, equipment comes back a third faster and fronts move 5% faster, but war weariness grows a quarter faster.', dp: { materiel: 1, equipRegen: 1.3, speed: 1.05, wePace: 1.25 } },
+    order: { key: 'ra_contract', name: 'Hire a private army', gold: 160, cd: 240, self: 1,
+      desc: 'A security firm sends its battalions, fully equipped: troops equal to 1.5% of the population at once.',
+      run: (G, n) => { const a = draft(G, n, 0.015, 0); return ID.fmtPop(a) + ' contractors sign on.'; }, ai: (G, n) => losing(n) && n.gold > 300 },
   };
 
   ID.TRAITS = {

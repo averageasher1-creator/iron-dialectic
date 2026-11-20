@@ -21,7 +21,7 @@ people want to keep playing. Prioritise legibility, performance, and a clear rea
 |---|---|
 | Design doc (`DESIGN.md`) | written |
 | Data: terrain, buildings, laws, recruitment, styles, factions, eras (`js/data/base.js`) | done |
-| Data: 25 ideologies (`js/data/ideologies.js`) | done |
+| Data: 29 ideologies (`js/data/ideologies.js`) | done |
 | Data: names, handcrafted scenario, situations, challenges (`js/data/names.js`) | done |
 | Data: ~75 events and ~45 decisions (`js/data/events.js`) | done |
 | Sim: mapgen, world, combat, economy, politics, diplomacy, events engine, AI, game loop/save | done, runs headless |
@@ -770,6 +770,58 @@ The game now plays on a phone in either orientation. Desktop layout is unchanged
 - Checked in Chromium emulation (iPhone 13 both ways, iPhone SE, Pixel 7) with real touch events:
   tap, hold, drag, folding, speed, modes, panels, dialogs, programme tree, tutorial. Not checked
   on a physical device.
+
+## Session 13: four more ideologies
+
+The user asked for Juche, Left Accelerationism, Right Accelerationism and National Syndicalism. Each is
+wired the way the session 10 systems are, so the checklist for a new ideology is now:
+
+1. `data/ideologies.js`: the `def({...})`, plus drift roads from older systems in the loop after it.
+2. `data/doctrine.js`: `D[id]` (gauge, drift, fx, low/high, 4 actions, war trait `dp`, war order).
+3. `data/regime.js`: `R.body[id]` and three `R.lines[id]`.
+4. `data/ideotrees.js` `tree(...)` and `data/trees2.js` `late(...)`.
+5. `data/names.js`: leader title, `START_WEIGHTS`, `SIT_FOR`. `ui/flags.js`: `EMBLEM_OF` (and an emblem in `EMB`).
+6. `sim/politics.js`: `classSupport` and `pickOpp` if the family default does not fit; `ELECTORAL` if it can
+   win elections; `oppositionParty` if it holds them.
+7. Decisions in `data/events.js` gate by `ideos: [...]`; add the new id where a decision fits.
+8. `node tools/ideocheck.js` checks 1–5 for every ideology, then forces the named ones on states and runs
+   four 30-year worlds exercising every action and order, with a save round trip.
+
+What the four are:
+
+- **Juche** (`juche`, socialist, ringstar): plan economy with Five-Year Plans, `succession` + `cult` flags and
+  `banner: 'leader'` (the autocrat's banner of `ui/madness.js`). Gauge *Self-reliance*: fed by autarky,
+  drained by trade, dependence, famine and defeat; high = legitimacy, stability, defence, low trade and
+  efficiency. War: the fortress country (home defence, capital, hold fast). Order: the reserve militia.
+  Objective: twenty years of autarky, a succession, self-reliance 70. Drifts to absmon (red dynasty),
+  junta, marketsoc; reached from ml and mao by drift. Opens five_year_plan, party_purge, cult_campaign,
+  autarky_drive.
+- **National Syndicalism** (`natsyn`, authoritarian, arrows): a pact economy leaning to labour, workers and
+  military ruling. Gauge *Syndical mobilisation* (workers' support, victories, fervour; capital's power
+  drains it). War: shock squads (atkMul, aloss, brittle). Order: a national strike in the enemy's factories.
+  Drifts to corporatist, ansyn, natpop; reached from ansyn, natpop, corporatist, and now one of the
+  ideologies a coup can install (`P.coupIdeo`). Opposition movements grow among unhappy urban workers in
+  unstable states.
+- **Left Accelerationism** (`leftacc`, heterodox, bolt): mixed economy, parliament with elections (in
+  `ELECTORAL`; losing hands power to socdem), +25% research. Gauge *Automation* (science budget, industry
+  level); high = output, efficiency, living standards, but unrest when it outruns the welfare budget. War:
+  machines instead of men (aloss, equipRegen, materiel). Order: automate the front. Reached from socdem and
+  cybernetic; movements only from 1940 in states with industry 4+.
+- **Right Accelerationism** (`rightacc`, heterodox, ffwd): market economy with the wildest cycle (1.5),
+  fastest investment, decree by a Board of Directors, free trade only. Gauge *Acceleration* (business
+  confidence, banned unions, thin welfare; slumps and strikes brake it); high = output, research,
+  confidence, and unrest. War: war as a business (materiel, equipRegen, speed, faster weariness). Order:
+  hire a private army. Drifts to minarchy (patchwork), personalist, natpop; reached from technocracy and
+  minarchy.
+
+Calibration (6 unforced 66-year worlds, 3 Three Continents + 3 random): as opposition movements the four
+sit with the rarer systems (province-years: rightacc ~1600, juche ~700, natsyn ~550, leftacc ~470, against
+liberal ~12000 and technocracy ~180); as regimes they arise about as often as trot, pannat or thirdpos
+(0–1 per world). They can always be chosen on the setup screen.
+
+Also fixed two session 10 war traits that used multipliers as if they were bonuses: Third Positionism's
+`homeDef: 0.15` (home defence ×0.15) is now 1.15, and the Religious Revival's `wePace: -0.5, bleed: 0.15`
+(war weariness *falling* with casualties, occupiers bleeding less) is now `wePace: 0.5, bleed: 1.15`.
 
 ## Published (end of session 2)
 

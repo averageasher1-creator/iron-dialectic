@@ -2,7 +2,7 @@
 
 A grand strategy of belief and power, playable in the browser. You run a state from 1910 to
 1976. War is simple to operate (one troop pool, a percentage slider, a fluid pixel front); the
-depth is in politics. Each of the 25 ideologies changes how the economy works, how the army is
+depth is in politics. Each of the 29 ideologies changes how the economy works, how the army is
 raised, which factions can bring you down, where legitimacy comes from, what you are allowed to
 order directly, and what winning means.
 
@@ -48,10 +48,14 @@ again to cancel it.
 
 ## What is in it
 
-- **25 ideologies** in six families, each with its own economy model (market, mixed, plan,
+- **29 ideologies** in six families, each with its own economy model (market, mixed, plan,
   workers' councils, corporatist pact, agrarian rent, commercial, cybernetic), decision-making
   rules, recruitment laws, attack doctrine, legitimacy sources, drift paths and grand objective.
-  Sectarian rivals inside a family treat each other as enemies.
+  Sectarian rivals inside a family treat each other as enemies. The newest four: **Juche** (a
+  self-reliant fortress around a hereditary Leader), **National Syndicalism** (vertical syndicates
+  and shock squads, the national revolution against bosses and parliament), **Left
+  Accelerationism** (full automation and a guaranteed income) and **Right Accelerationism** (the
+  state as a sovereign corporation riding a runaway market).
 - **Doctrines**: every system plays differently. Each has its own gauge with its own logic (party
   unity, revolutionary momentum, council vitality, royal will, zeal, credit, national enthusiasm and
   so on), actions only it can take, a way of fighting (commissars, people's war, lightning war,
@@ -164,6 +168,7 @@ node tools/budget.js                            # every nation's treasury on def
 node tools/history.js --runs 3 --verbose        # The Three Continents in historical mode: beats, programmes, regimes
 node tools/history.js --runs 3 --free           # the same world with no storyline
 node tools/metrics.js events|pacing|human|trees|tables   # event variety, war pacing, tree sizes, ideology tables
+node tools/ideocheck.js [ideo,...] [years]      # every ideology fully wired; force some on states and run the world
 ```
 
 Ideologies, events, programmes and the storyline are plain data: add an ideology by adding one

@@ -263,4 +263,42 @@
     ['neither', 'Neither east nor west', 'The slogan painted over the gate of the old foreign embassy.', [['sig', 10], ['opAll', -3], ['mod', 'def', 0.06, PERM, 'Neither east nor west']]],
   ], [1945, 1960]);
 
+  /* ---------------------------------------------------------------- session 12 */
+  tree('juche', 'jc', [
+    ['idea', 'The idea of self-reliance', 'Man is the master of everything and decides everything: so says the treatise, studied every Saturday in every workplace of the country.', [['sig', 8], ['charisma', 6]]],
+    ['chollima', 'Chollima speed', 'The winged horse on every poster, and a production campaign that never formally ends.', [['mod', 'prod', 0.05, PERM, 'Chollima speed'], ['mod', 'ls', -1, PERM, 'Chollima speed']]],
+    ['songun', 'Military-first politics', 'The army ahead of the working class in every queue: for rations, for steel and for the Leader’s visits.', [['mod', 'def', 0.06, PERM, 'Military first'], ['sup', 'military', 10], ['mod', 'coup', -0.2, PERM, 'Military first']]],
+    ['taean', 'The Taean work system', 'The factory’s party committee, not its manager, runs the plant; the engineers explain to it what is possible.', [['mod', 'eff', 0.03, PERM, 'The Taean system'], ['discipline', 8]]],
+    ['tunnels', 'A fortress of tunnels', 'Factories, airfields and whole divisions moved under the mountains.', [['mod', 'def', 0.05, PERM, 'The tunnels'], ['sig', 6]]],
+    ['monolith', 'The monolithic ideological system', 'Ten principles: the Leader’s words are law, his portrait is cleaned daily, and doubt is a crime against the people.', [['sig', 12], ['charisma', 10], ['tradition', 8]]],
+    ['eternal', 'The eternal President', 'After his death the Leader’s office is abolished, so that he may hold it for ever.', [['sig', 10], ['tradition', 10], ['mod', 'coup', -0.3, PERM, 'The eternal President']]],
+  ], [1935, 1955]);
+  tree('natsyn', 'ns', [
+    ['squads', 'The action squads', 'Veterans of the trenches and students in coloured shirts: the movement’s first army.', [['sig', 8], ['fervor', 8]]],
+    ['vertical', 'The vertical syndicates', 'Workers and employers of each branch in one union, under the movement’s delegate.', [['mod', 'prod', 0.04, PERM, 'Vertical syndicates'], ['sup', 'workers', 6], ['law', 'labor', 'company']]],
+    ['land', 'The national land reform', 'The great estates broken up and handed to the peasants who will defend them.', [['law', 'land', 'smallholder'], ['sup', 'peasants', 10], ['sup', 'capital', -6]]],
+    ['charter', 'The charter of labour', 'Wages, holidays and the right to work written into the constitution; the right to strike removed from it.', [['mod', 'ls', 2, PERM, 'Charter of labour'], ['mod', 'unrest', -2, PERM, 'Charter of labour']]],
+    ['banks', 'The banks to the nation', 'Credit is a public service: the great banks nationalised and told to lend to the syndicates.', [['sup', 'capital', -10], ['mod', 'prod', 0.04, PERM, 'National credit'], ['gold', 100]]],
+    ['state', 'The national-syndicalist state', 'The syndicates are the state; the old parliament building becomes their congress hall.', [['sig', 12], ['mod', 'legit', 4, PERM, 'The syndical state']]],
+    ['empire', 'The will to empire', 'A people of producers in arms claims its place among the great nations.', [['sig', 8], ['glory', 6], ['mod', 'atk', 0.05, PERM, 'The will to empire']]],
+  ], [1930, 1950]);
+  tree('leftacc', 'la', [
+    ['manifesto', 'A manifesto for the future', 'A pamphlet that tells the left to stop being nostalgic and start being modern.', [['sig', 6], ['sup', 'intelligentsia', 8]]],
+    ['automation', 'The automation programme', 'Every routine job catalogued, and a date set for a machine to take it over.', [['mod', 'prod', 0.05, PERM, 'Automation programme'], ['sig', 8]]],
+    ['income', 'The guaranteed income', 'Paid to everyone from the first year, whatever the machines do.', [['mod', 'ls', 3, PERM, 'Guaranteed income'], ['sup', 'workers', 8], ['gold', -80]]],
+    ['labs', 'Public laboratories', 'Research institutes owned by the commons, publishing everything they find.', [['mod', 'sci', 0.1, PERM, 'Public laboratories'], ['techUp', 'ind']]],
+    ['week', 'The fifteen-hour week', 'The old economist’s prophecy for his grandchildren, written into law.', [['particip', 8], ['mod', 'stab', 3, PERM, 'The fifteen-hour week'], ['mod', 'prod', -0.02, PERM, 'Fewer hours']]],
+    ['postwork', 'The post-work society', 'Work becomes something people choose; the economy runs on machines and the commons.', [['sig', 12], ['mod', 'eff', 0.04, PERM, 'Post-work']]],
+    ['space', 'The space commons', 'A rocket programme owned by everyone, aimed at the Moon and then further.', [['mod', 'sci', 0.08, PERM, 'The space commons'], ['glory', 8], ['opAll', 3]]],
+  ], [1945, 1960]);
+  tree('rightacc', 'ra', [
+    ['board', 'The board of the nation', 'Parliament replaced by a board, voters by shareholders, the president by a chief executive.', [['sig', 8], ['auth', 10]]],
+    ['zones', 'The free zones', 'Every port a free zone, and every free zone a separate jurisdiction for sale.', [['mod', 'trade', 0.08, PERM, 'Free zones'], ['gold', 120]]],
+    ['labs', 'The private laboratories', 'Corporate research parks with their own police and no ethics committee.', [['mod', 'sci', 0.1, PERM, 'Private laboratories'], ['sup', 'intelligentsia', 6]]],
+    ['exit', 'The right of exit', 'Leave whenever you like. We will not miss you.', [['mod', 'unrest', -3, PERM, 'The right of exit'], ['pop', -0.02]]],
+    ['machine', 'Capital’s own machines', 'Factories that order their own spare parts and dismiss their own managers.', [['mod', 'prod', 0.05, PERM, 'Machine capital'], ['techUp', 'ind']]],
+    ['sovereign', 'The sovereign corporation', 'The state is a company, the country its property, the citizens its customers.', [['sig', 12], ['mod', 'eff', 0.04, PERM, 'The sovereign corporation']]],
+    ['singularity', 'The singularity', 'The board’s computers propose the dividend, and nobody can explain how they arrived at it.', [['sig', 10], ['mod', 'prod', 0.05, PERM, 'The singularity'], ['grievance', 8]]],
+  ], [1945, 1960]);
+
 })();

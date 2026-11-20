@@ -282,6 +282,10 @@
   late('thirdpos', ['Positive neutrality', 'Aid from both, alliance with neither.', [['sig', 12], ['gold', 100]]], ['The open door', 'Foreign capital back.', [['mod', 'conf', 8, 240, 'Open door'], ['drift', 'liberal', 10]]]);
   late('pannat', ['Union or nothing', 'Every resource for unity.', [['sig', 12], ['union']]], ['Socialism in one region', 'Build the party at home.', [['mod', 'prod', 0.05, 240, 'Regional socialism']]]);
   late('revival', ['The guardianship deepened', 'One guide, final word.', [['mod', 'coup', -0.3, 240, 'Guardianship']]], ['The reformists', 'Elections among believers.', [['particip', 10], ['drift', 'liberal', 8]]]);
+  late('juche', ['The red dynasty', 'The son succeeds the father, and the grandson the son.', [['tradition', 12], ['flag', 'heir']]], ['The special zones', 'A fenced city for foreign capital.', [['mod', 'trade', 0.08, 240, 'Special zones'], ['drift', 'marketsoc', 10]]]);
+  late('natsyn', ['The revolution postponed', 'The employers keep the syndicates.', [['sup', 'capital', 10], ['mod', 'conf', 6, 240, 'Peace with the employers'], ['drift', 'corporatist', 10]]], ['The second revolution', 'The squads march again.', [['fervor', 12], ['sup', 'capital', -8], ['sig', 8]]]);
+  late('leftacc', ['The open plan', 'The platforms federated into one plan.', [['mod', 'eff', 0.06, 240, 'The open plan'], ['drift', 'cybernetic', 8]]], ['Luxury for all', 'The machines make abundance.', [['mod', 'ls', 3, 240, 'Luxury for all'], ['sig', 6]]]);
+  late('rightacc', ['The patchwork', 'A hundred city-companies.', [['mod', 'trade', 0.08, 240, 'The patchwork'], ['drift', 'minarchy', 10]]], ['The crowned executive', 'The chief executive becomes a monarch.', [['mod', 'coup', -0.3, 240, 'The crowned executive'], ['drift', 'personalist', 10]]]);
 
   /* ================================================================ fewer flat steps */
   /* Programmes of the national trees whose effects were only numbers get one interaction, chosen by what

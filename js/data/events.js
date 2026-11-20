@@ -627,9 +627,9 @@
 
   /* ---- socialist */
   dec({ id: 'five_year_plan', name: 'Launch a Five-Year Plan', desc: 'Lock the current budget shares for five years and set an industrial target. Fulfilment feeds discipline and fervour; failure is a political event. Without a plan in force, efficiency is 8% lower.', cost: { auth: 15 }, cd: 6,
-    ideos: ['ml', 'mao'], can: (n) => (n.plan ? 'A plan is already in force.' : ''), fx: [['fn', (G, n) => ID.Economy.startPlan(G, n)], ['note', 'Budget locked until the plan ends']] });
+    ideos: ['ml', 'mao', 'juche'], can: (n) => (n.plan ? 'A plan is already in force.' : ''), fx: [['fn', (G, n) => ID.Economy.startPlan(G, n)], ['note', 'Budget locked until the plan ends']] });
   dec({ id: 'party_purge', name: 'Purge the party', desc: 'Restore discipline by removing the unreliable. Effective, and habit-forming.', cost: { auth: 30 }, cd: 36,
-    ideos: ['ml', 'mao', 'trot', 'personalist'], fx: [['discipline', 28], ['bureau', -8], ['sup', 'bureaucracy', -12], ['sup', 'intelligentsia', -8], ['grievance', 8], ['mod', 'sci', -0.1, 12, 'Purge'], ['fn', (G, n) => { if (n.drift.personalist != null) n.drift.personalist = Math.min(100, n.drift.personalist + 8); }]] });
+    ideos: ['ml', 'mao', 'trot', 'personalist', 'juche'], fx: [['discipline', 28], ['bureau', -8], ['sup', 'bureaucracy', -12], ['sup', 'intelligentsia', -8], ['grievance', 8], ['mod', 'sci', -0.1, 12, 'Purge'], ['fn', (G, n) => { if (n.drift.personalist != null) n.drift.personalist = Math.min(100, n.drift.personalist + 8); }]] });
   dec({ id: 'thaw', name: 'The Thaw', desc: 'Loosen censorship, release prisoners, let the economists speak.', cost: { auth: 25 }, cd: 72,
     ideos: ['ml', 'mao'], fx: [['dist', -15], ['grievance', -15], ['sup', 'intelligentsia', 12], ['discipline', -10], ['fn', (G, n) => { if (I(n).laws.press.indexOf('regulated') >= 0) n.laws.press = 'regulated'; if (n.drift.marketsoc != null) n.drift.marketsoc = Math.min(100, n.drift.marketsoc + 15); }], ['note', 'Drift toward Market Socialism +15', false]] });
   dec({ id: 'great_leap', name: 'The Great Leap', desc: 'Mobilise the whole countryside to industrialise in a single bound. It may work.', cost: { auth: 30 }, cd: 72,
@@ -653,11 +653,11 @@
 
   /* ---- liberal */
   dec({ id: 'social_pact', name: 'Tripartite accord', desc: 'Government, unions and employers sign a national wage bargain.', cost: { auth: 20, gold: 60 }, cd: 48,
-    ideos: ['socdem', 'marketsoc', 'demsoc'], can: (n) => (S(n, 'workers') < 35 || S(n, 'capital') < 30 ? 'One side will not come to the table (workers need 35, capital 30).' : ''), fx: [['sup', 'workers', 8], ['sup', 'capital', 7], ['mod', 'prod', 0.03, 24, 'Tripartite accord']] });
+    ideos: ['socdem', 'marketsoc', 'demsoc', 'leftacc'], can: (n) => (S(n, 'workers') < 35 || S(n, 'capital') < 30 ? 'One side will not come to the table (workers need 35, capital 30).' : ''), fx: [['sup', 'workers', 8], ['sup', 'capital', 7], ['mod', 'prod', 0.03, 24, 'Tripartite accord']] });
   dec({ id: 'antitrust', name: 'Break up the trusts', desc: 'Dissolve the largest combines.', cost: { auth: 20 }, cd: 60,
     ideos: ['liberal', 'socdem', 'conmon'], vote: { workers: 10, capital: -25, intelligentsia: 8 }, fx: [['sup', 'capital', -10], ['sup', 'workers', 6], ['conf', -5], ['mod', 'pow_capital', -0.12, 120, 'Trust-busting']] });
   dec({ id: 'charter_companies', name: 'Sell charters', desc: 'Auction monopolies and public functions to the highest bidders.', cost: { auth: 10 }, cd: 60,
-    ideos: ['minarchy', 'merchant', 'liberal'], fx: [['gold', 220], ['corr', 8], ['mod', 'pow_capital', 0.2, 120, 'Chartered monopolies'], ['sup', 'workers', -6]] });
+    ideos: ['minarchy', 'merchant', 'liberal', 'rightacc'], fx: [['gold', 220], ['corr', 8], ['mod', 'pow_capital', 0.2, 120, 'Chartered monopolies'], ['sup', 'workers', -6]] });
 
   /* ---- conservative */
   dec({ id: 'royal_progress', name: 'Royal progress', desc: 'The sovereign tours the provinces with full ceremony.', cost: { gold: 60 }, cd: 36,
@@ -671,23 +671,23 @@
 
   /* ---- authoritarian */
   dec({ id: 'martial_law', name: 'Martial law', desc: 'Soldiers on every corner for a year.', cost: { auth: 15 }, cd: 24,
-    ideos: ['junta', 'personalist', 'corporatist', 'absmon'], fx: [['mod', 'unrest', -12, 12, 'Martial law'], ['grievance', 10], ['sup', 'intelligentsia', -8], ['particip', -8]] });
+    ideos: ['junta', 'personalist', 'corporatist', 'absmon', 'natsyn'], fx: [['mod', 'unrest', -12, 12, 'Martial law'], ['grievance', 10], ['sup', 'intelligentsia', -8], ['particip', -8]] });
   dec({ id: 'chamber_arbitration', name: 'Arbitration from the chair', desc: 'Summon both corporations and dictate terms each can live with.', cost: { auth: 20 }, cd: 30,
-    ideos: ['corporatist', 'junta', 'natpop', 'personalist'], fx: [['sup', 'workers', 7], ['sup', 'capital', 7], ['corr', 3]] });
+    ideos: ['corporatist', 'junta', 'natpop', 'personalist', 'natsyn'], fx: [['sup', 'workers', 7], ['sup', 'capital', 7], ['corr', 3]] });
   dec({ id: 'autarky_drive', name: 'Battle for self-sufficiency', desc: 'Synthetic fuel, ersatz rubber, wheat on every verge.', cost: { gold: 100 }, cd: 48,
-    ideos: ['corporatist', 'natpop', 'personalist'], can: (n) => (law(n, 'trade', 'free') ? 'Not while trade is free.' : ''), fx: [['mod', 'prod', 0.06, 48, 'Self-sufficiency'], ['threat', 3], ['mod', 'ls', -3, 48, 'Ersatz']] });
+    ideos: ['corporatist', 'natpop', 'personalist', 'juche', 'natsyn'], can: (n) => (law(n, 'trade', 'free') ? 'Not while trade is free.' : ''), fx: [['mod', 'prod', 0.06, 48, 'Self-sufficiency'], ['threat', 3], ['mod', 'ls', -3, 48, 'Ersatz']] });
   dec({ id: 'rationalisation', name: 'Rationalisation programme', desc: 'Time-and-motion men in every plant.', cost: { auth: 20 }, cd: 48,
-    ideos: ['technocracy', 'cybernetic'], fx: [['mod', 'eff', 0.06, 36, 'Rationalisation'], ['sup', 'workers', -8], ['sup', 'bureaucracy', 4]] });
+    ideos: ['technocracy', 'cybernetic', 'rightacc'], fx: [['mod', 'eff', 0.06, 36, 'Rationalisation'], ['sup', 'workers', -8], ['sup', 'bureaucracy', 4]] });
   dec({ id: 'orbital', name: 'The orbital programme', desc: 'Put a machine in orbit. Needs industrial technology 8 and military technology 6.', cost: { gold: 1500 }, cd: 999,
-    ideos: ['technocracy', 'cybernetic'], can: (n) => (n.tech.ind < 8 || n.tech.mil < 6 ? 'Needs industrial technology 8 and military technology 6.' : n.flags.orbital ? 'Already done.' : ''), fx: [['flag', 'orbital'], ['glory', 20], ['legitmod', 10, 60, 'First in orbit'], ['opAll', 5], ['news', '{N} puts the first artificial moon in orbit.', 'good']] });
+    ideos: ['technocracy', 'cybernetic', 'leftacc', 'rightacc'], can: (n) => (n.tech.ind < 8 || n.tech.mil < 6 ? 'Needs industrial technology 8 and military technology 6.' : n.flags.orbital ? 'Already done.' : ''), fx: [['flag', 'orbital'], ['glory', 20], ['legitmod', 10, 60, 'First in orbit'], ['opAll', 5], ['news', '{N} puts the first artificial moon in orbit.', 'good']] });
   dec({ id: 'cult_campaign', name: 'Glorify the Leader', desc: 'Statues, anthems, a new name for the capital’s main square.', cost: { gold: 80 }, cd: 24,
-    ideos: ['personalist', 'natpop', 'mao'], fx: [['charisma', 10], ['corr', 3], ['sup', 'intelligentsia', -6], ['fn', (G, n) => { if (n.drift.personalist != null) n.drift.personalist = Math.min(100, n.drift.personalist + 6); }]] });
+    ideos: ['personalist', 'natpop', 'mao', 'juche'], fx: [['charisma', 10], ['corr', 3], ['sup', 'intelligentsia', -6], ['fn', (G, n) => { if (n.drift.personalist != null) n.drift.personalist = Math.min(100, n.drift.personalist + 6); }]] });
 
   /* ---- heterodox */
   dec({ id: 'expand_network', name: 'Expand the computing network', desc: 'New machines, new lines, new operators.', cost: { gold: 150 }, cd: 18,
     ideos: ['cybernetic'], fx: [['fn', (G, n) => { n.sciTotal += 160; }], ['note', 'Computing capacity up (load falls)']] });
   dec({ id: 'open_ledger', name: 'Open the ledgers', desc: 'Publish every enterprise’s figures to every workplace.', cost: { auth: 15 }, cd: 36,
-    ideos: ['cybernetic', 'council', 'marketsoc'], fx: [['particip', 10], ['corr', -8], ['sup', 'bureaucracy', -8], ['dist', -6]] });
+    ideos: ['cybernetic', 'council', 'marketsoc', 'leftacc'], fx: [['particip', 10], ['corr', -8], ['sup', 'bureaucracy', -8], ['dist', -6]] });
   dec({ id: 'plebiscite', name: 'Hold a plebiscite', desc: 'Ask the nation one question, phrased so that there is one answer. The result becomes your mandate — whatever it is.', cost: { auth: 20 }, cd: 48,
     ideos: ['natpop', 'personalist', 'corporatist'], fx: [['fn', (G, n) => {
       const yes = clamp(40 + n.charisma * 0.4 + n.glory * 0.2 - n.crises * 8 + G.rng.range(-6, 6), 20, 96);
@@ -695,7 +695,7 @@
       else { n.mandate = 20; n.charisma = Math.max(0, n.charisma - 12); n.stab -= 6; ID.news(G, 'The plebiscite in ' + n.name + ' embarrasses the regime: only ' + Math.round(yes) + '% say yes.', 'bad', n.id); ID.logGrief(n, G.tick, 'A plebiscite failed (' + Math.round(yes) + '% yes).'); }
     }], ['note', 'Result depends on the Leader’s authority, glory and current crises', null]] });
   dec({ id: 'scapegoat', name: 'Scapegoat campaign', desc: 'Give the people someone to blame. It works at once, and you will pay for it for years.', cost: { auth: 10 }, cd: 18,
-    ideos: ['natpop', 'personalist', 'corporatist'], fx: [['supAll', 6], ['sup', 'intelligentsia', -14], ['grievance', 10], ['opAll', -8], ['mod', 'prod', -0.03, 24, 'Purged professions'], ['charisma', 4], ['later', 12, 'scapegoat_fades']] });
+    ideos: ['natpop', 'personalist', 'corporatist', 'natsyn'], fx: [['supAll', 6], ['sup', 'intelligentsia', -14], ['grievance', 10], ['opAll', -8], ['mod', 'prod', -0.03, 24, 'Purged professions'], ['charisma', 4], ['later', 12, 'scapegoat_fades']] });
   dec({ id: 'bribe_council', name: 'Grease the wheels', desc: 'A purse in every pocket that matters.', cost: { gold: 120 }, cd: 12,
     ideos: ['merchant'], fx: [['supAll', 5], ['corr', 6]] });
 })();
