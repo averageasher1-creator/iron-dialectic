@@ -21,7 +21,7 @@ people want to keep playing. Prioritise legibility, performance, and a clear rea
 |---|---|
 | Design doc (`DESIGN.md`) | written |
 | Data: terrain, buildings, laws, recruitment, styles, factions, eras (`js/data/base.js`) | done |
-| Data: 29 ideologies (`js/data/ideologies.js`) | done |
+| Data: 31 ideologies (`js/data/ideologies.js`) | done |
 | Data: names, handcrafted scenario, situations, challenges (`js/data/names.js`) | done |
 | Data: ~75 events and ~45 decisions (`js/data/events.js`) | done |
 | Sim: mapgen, world, combat, economy, politics, diplomacy, events engine, AI, game loop/save | done, runs headless |
@@ -802,17 +802,7 @@ What the four are:
   Drifts to corporatist, ansyn, natpop; reached from ansyn, natpop, corporatist, and now one of the
   ideologies a coup can install (`P.coupIdeo`). Opposition movements grow among unhappy urban workers in
   unstable states.
-- **Left Accelerationism** (`leftacc`, heterodox, bolt): mixed economy, parliament with elections (in
-  `ELECTORAL`; losing hands power to socdem), +25% research. Gauge *Automation* (science budget, industry
-  level); high = output, efficiency, living standards, but unrest when it outruns the welfare budget. War:
-  machines instead of men (aloss, equipRegen, materiel). Order: automate the front. Reached from socdem and
-  cybernetic; movements only from 1940 in states with industry 4+.
-- **Right Accelerationism** (`rightacc`, heterodox, ffwd): market economy with the wildest cycle (1.5),
-  fastest investment, decree by a Board of Directors, free trade only. Gauge *Acceleration* (business
-  confidence, banned unions, thin welfare; slumps and strikes brake it); high = output, research,
-  confidence, and unrest. War: war as a business (materiel, equipRegen, speed, faster weariness). Order:
-  hire a private army. Drifts to minarchy (patchwork), personalist, natpop; reached from technocracy and
-  minarchy.
+- **Left/Right Accelerationism** were replaced in the same session (see Session 13b).
 
 Calibration (6 unforced 66-year worlds, 3 Three Continents + 3 random): as opposition movements the four
 sit with the rarer systems (province-years: rightacc ~1600, juche ~700, natsyn ~550, leftacc ~470, against
@@ -822,6 +812,60 @@ liberal ~12000 and technocracy ~180); as regimes they arise about as often as tr
 Also fixed two session 10 war traits that used multipliers as if they were bonuses: Third Positionism's
 `homeDef: 0.15` (home defence ×0.15) is now 1.15, and the Religious Revival's `wePace: -0.5, bleed: 0.15`
 (war weariness *falling* with casualties, occupiers bleeding less) is now `wePace: 0.5, bleed: 1.15`.
+
+## Session 13b: the accelerated systems and National Socialism
+
+The user found the two accelerationisms dull and asked for **Techno-Socialist Accelerationism** ("ultra-trotskyism,
+spread your ideas fast"), **NRX/Landian Accelerationism** (industry and research) and **National Socialism**, which
+can become **Nazi Accelerationism** ("a fire which must feed on more countries or die out", devastating choices and
+pop-ups). Accelerationist systems get major advantages and punish being slow. `leftacc`/`rightacc` are gone.
+
+- **New file `js/data/accel.js`** (loads after `data/doctrine.js`) holds the four doctrines and their dispatches.
+  Two engine hooks were added: a doctrine may define `month(G, n)` (called from `Doctrine.month` after the gauge
+  moves; errors are not swallowed) and `extra(n, G)` (rows `[label, text, good]` shown on the doctrine card).
+  The accelerated gauges cancel or exceed the usual pull toward 50 so they fall hard unless fed; direct feeding
+  in `month` bypasses the ±4 monthly clamp.
+- **technosoc** (socialist, permRev): gauge *Velocity* (−2.6 a month, fed by movement strength abroad, a
+  revolution carried abroad in the last two years, advancing wars, industry). ±50 around the middle gives up to
+  ±40% research, ±20% attack, ±15% front speed, ±6 legitimacy, unrest and faster drift when low. Monthly
+  broadcast seeds its movement in 1 + velocity/25 countries, shared among all techno-socialist states (one
+  network: reach / count, strength / √count); the largest of them (the hub) can tip a ripe country (movement
+  20%+, stability < 40) into revolution. Velocity < 8 brings `ts_thermidor` (become ml, or purge and go faster).
+  Order: *The signal* (targeted seeding, instant uprising if stability < 45). `dip.export` 1.0: at 1.4 the AI
+  ran coup plots everywhere and one random world ended with 21 techno-socialist states.
+- **nrx** (heterodox, market): gauge *Acceleration* (−2.4 a month, fed by industry growth ×250, +4 per tech
+  level gained, confidence, the science budget; slumps, strikes, welfare and losing wars brake it). High: up to
+  +25% industry, +40% research, a free factory every 12 months at 70+, and above 80 the *intelligence explosion*
+  adds research equal to last month's × (gauge−75)/25. Below 25 capital flight (6% of the treasury a month);
+  below 10 `nx_board` (technocracy, personalist, or cut everything and go faster).
+- **natsoc** (authoritarian, ELECTORAL, succession + cult, the leader banner): gauge *Radicalisation*, a ratchet
+  (drift cancels the pull to 50; climbs ~6 years to 100 with programmes and wars). It gives attack, mobilisation,
+  coup protection and quiet streets, and costs research and trade. Mechanics in `sigx`: `rearm` (secret
+  rearmament: industry +12%, attack +5%, `bills` grow by 4 + revenue/4 a month), `bills` (paid off by conquered
+  tiles, 40% off per state destroyed; above `80 + 24×revenue` the `ns_bills` crisis: war, print money, guns before
+  butter, or default), `patience` (the world's, 100; each ultimatum −22 on success, −8 on refusal; at 0 the end of
+  appeasement: threat ≥ 75 so every power has the coalition cause for war). *An ultimatum* demands two claimed
+  provinces of the weakest claimed neighbour through `Diplomacy.noteAnswer('cede')` (the player as target gets
+  the normal `fp_note`). Persecution is the act *Laws against the "enemy within"*: radicalisation, and only costs
+  (research −10% for good, intelligentsia, opinion), recorded in the chronicle as a crime. At radicalisation 92+
+  in a war going badly, `ns_twilight` offers the road into the fire (plus a drift to nazacc).
+- **nazacc** (authoritarian, `noPeace`, the new `fire` banner in `ui/madness.js`): gauge *The fire*, −4 a month
+  plus `hunger` = 1.5 × (growth over its size when it became the fire) + 0.4 × years in power. Fed by land taken
+  (up to +10 a month), +12 per new war, +25 per enemy state destroyed (`n.cnt.consumed`). Up to +28% attack,
+  +21% speed, +12% mobilisation and weariness growth ×0.3 at 100. It cannot propose or accept peace while the fire
+  is above 10 (`Diplomacy.wantsPeace`/`evalProposal`), always annexes what capitulates (`Diplomacy.capitulate`),
+  AI declares on the weakest neighbour whenever at peace, the player gets `nz_hunger`. Every 4–7 months one of
+  seven devastating dispatches (`nz_nero`, `nz_children`, `nz_ally`, `nz_cities`, `nz_wonder`, `nz_generals`,
+  `nz_starve`; `when(n, G, ctx)` gates them). At 0 the fire goes out: coup to junta, troops ×0.6, stability 15,
+  weariness 85, `nz_ashes` for the player.
+- Calibration (one state forced into each, 4 seeds × 2 maps, 40 years, AI only): nazacc grows 2–7× and burns out
+  in 6–10 years; natsoc lasts 8–36 years and in about half the runs becomes the fire; technosoc either stalls and
+  falls within 6–20 years or spreads to 2–10 states; nrx holds 16–40 years with the gauge mostly 70–95, then the
+  curve breaks and the board revolts. Unforced worlds: technosoc and nrx movements appear from 1940 in
+  industrial states; natsoc rarely takes power on its own (drifts are rare everywhere in this game).
+- Content choices: no swastika or SS imagery (natsoc has an eagle in a ring, nazacc a flame), no real-world
+  extremist slogans in the banner; the theory texts describe these systems critically, and atrocity choices carry
+  heavy costs and are recorded in the chronicle.
 
 ## Published (end of session 2)
 

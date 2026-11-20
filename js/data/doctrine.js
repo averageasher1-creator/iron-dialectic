@@ -562,44 +562,6 @@
       run: (G, n, t) => { ID.addMod(t, 'prod', -0.12, 3, 'National strike'); t.fs.workers = clamp(t.fs.workers - 6, 0, 100); ID.docSeed(G, t, 'natsyn', 8, 3, n.id); return 'The factories of ' + t.base + ' fall silent.'; }, ai: (G, n) => n.nwars > 0 },
   };
 
-  D.leftacc = {
-    name: 'Full Automation', gauge: 'Automation', init: 45,
-    desc: 'How much of the work the machines now do. Science spending and industry push it up; a slump or a lost war stalls it. It raises output and living standards, but when it runs ahead of the welfare budget the displaced fill the streets.',
-    drift: (n) => -0.3 + ((n.budget.science || 0) - 0.12) * 8 + (n.tech.ind - 3) * 0.12 - (n.depression ? 0.4 : 0) - (losing(n) ? 0.5 : 0),
-    fx: (n, v) => { const gap = v - 40 - (n.budget.welfare || 0) * 100; return { prod: (v - 50) * 0.002, eff: (v - 50) * 0.001, ls: (v - 50) * 0.05, legit: (v - 50) * 0.06, unrest: gap > 0 ? gap * 0.06 : 0 }; },
-    low: 'Low automation: a party of futurists running a nineteenth-century economy.',
-    high: 'High automation: the four-day week, then the three-day week.',
-    acts: [
-      { id: 'la_ubi', name: 'The universal basic income', desc: 'A cheque every month for every citizen, whether or not the machines left them a job.', cost: { gold: 120 }, cd: 60, sig: 6, fx: [['mod', 'ls', 3, 60, 'Basic income'], ['mod', 'unrest', -3, 60, 'Basic income'], ['sup', 'workers', 6], ['sup', 'capital', -4]], ai: (n) => n.gold > 220 },
-      { id: 'la_week', name: 'Shorten the working week', desc: 'Thirty-five hours, then thirty: the machines do the rest.', cost: { auth: 15 }, cd: 48, sig: 8, can: (n) => ((n.sig || 0) < 40 ? 'The machines cannot carry it yet (automation 40).' : ''), fx: [['sup', 'workers', 10], ['particip', 6], ['mod', 'ls', 2, 36, 'Free time'], ['mod', 'prod', -0.03, 36, 'A shorter week']], ai: (n, v) => v > 55 },
-      { id: 'la_platform', name: 'Seize the platforms', desc: 'The telephone exchanges, the railway timetables and the great firms’ punched-card offices taken into common ownership and opened to everyone.', cost: { auth: 20 }, cd: 120, sig: 12, fx: [['sup', 'capital', -12], ['mod', 'eff', 0.05, 120, 'Common platforms'], ['tech', 150]], ai: (n, v) => v < 50 },
-      { id: 'la_future', name: 'Invent the future', desc: 'World fairs, science fiction on the radio and a ministry of the future: the left must promise something again.', cost: { gold: 50 }, cd: 24, sig: 6, fx: [['sup', 'intelligentsia', 6], ['legitmod', 3, 24, 'The future'], ['mod', 'sci', 0.05, 24, 'Ministry of the future']], ai: (n, v) => v < 60 && n.gold > 100 },
-    ],
-    war: { name: 'Machines instead of men', desc: 'Equipment and logistics before manpower: attacks lose a fifth fewer men, the army re-equips half again as fast, and a stronger industry than the enemy’s tells.', dp: { aloss: 0.82, equipRegen: 1.5, materiel: 1 } },
-    order: { key: 'la_automate', name: 'Automate the front', gold: 80, cd: 300, self: 1,
-      desc: 'Every automated line is turned over to the front for three months: equipment restored at once and fronts move a fifth faster.',
-      run: (G, n) => { n.equip = Math.max(n.equip, 1.1); ID.addMod(n, 'speed', 0.2, 3, 'Automated front'); return 'The factories switch to the front overnight.'; }, ai: (G, n) => n.nwars > 0 && n.equip < 0.9 },
-  };
-
-  D.rightacc = {
-    name: 'The Runaway Machine', gauge: 'Acceleration', init: 55,
-    desc: 'The speed of the process. Business confidence, banned unions and a thin welfare budget push it up; slumps, strikes, welfare and defeat brake it. The faster it runs, the richer the shareholders and the angrier everyone else.',
-    drift: (n) => -0.3 + ((n.conf || 50) - 50) * 0.02 - (n.depression ? 1.2 : 0) + ((n.budget.welfare || 0) > 0.08 ? -0.4 : 0.1) + (n.laws.labor === 'banned' ? 0.2 : n.laws.labor === 'free' ? -0.2 : 0) - (n.strike ? 0.4 : 0) - (losing(n) ? 0.6 : 0),
-    fx: (n, v) => ({ prod: (v - 50) * 0.0025, sci: (v - 50) * 0.002, conf: (v - 50) * 0.08, legit: (v - 50) * 0.06, unrest: Math.max(0, v - 45) * 0.06 }),
-    low: 'Low acceleration: an ordinary oligarchy in an expensive suit.',
-    high: 'High acceleration: a new skyline every year, and a shanty town under it.',
-    acts: [
-      { id: 'ra_zones', name: 'Charter zones', desc: 'Enclaves with their own law, their own courts and no taxes, leased to whoever bids highest.', cost: { auth: 10 }, cd: 48, sig: 10, fx: [['gold', 120], ['sup', 'capital', 6], ['mod', 'trade', 0.06, 60, 'Charter zones'], ['mod', 'unrest', 2, 60, 'Charter zones']], ai: (n, v) => v < 60 },
-      { id: 'ra_exit', name: 'Free exit', desc: 'Anyone who dislikes the company may leave. Many do; the ones who stay stop complaining.', cost: { auth: 10 }, cd: 60, sig: 6, fx: [['pop', -0.02], ['mod', 'unrest', -5, 36, 'Free exit'], ['sup', 'workers', 4]], ai: (n) => (n.a.unrest || 0) > 30 },
-      { id: 'ra_dissolve', name: 'Dissolve the last regulations', desc: 'The labour code, the factory inspectorate and the central bank’s rate committee, abolished in one board meeting.', cost: { auth: 20 }, cd: 120, sig: 14, fx: [['law', 'labor', 'banned'], ['sup', 'workers', -10], ['sup', 'capital', 10], ['conf', 10]], ai: (n, v) => v < 45 },
-      { id: 'ra_shares', name: 'Citizenship as shares', desc: 'Every resident becomes a shareholder: dividends for the loyal, and votes counted by holding.', cost: { gold: 60 }, cd: 48, sig: 6, fx: [['sup', 'capital', 4], ['sup', 'intelligentsia', 4], ['mod', 'stab', 4, 36, 'Citizen shareholders'], ['mod', 'ls', 1, 36, 'Dividends']], ai: (n) => n.stab < 45 && n.gold > 120 },
-    ],
-    war: { name: 'War as a business', desc: 'Contractors fight well while the money lasts: a stronger industry than the enemy’s tells, equipment comes back a third faster and fronts move 5% faster, but war weariness grows a quarter faster.', dp: { materiel: 1, equipRegen: 1.3, speed: 1.05, wePace: 1.25 } },
-    order: { key: 'ra_contract', name: 'Hire a private army', gold: 160, cd: 240, self: 1,
-      desc: 'A security firm sends its battalions, fully equipped: troops equal to 1.5% of the population at once.',
-      run: (G, n) => { const a = draft(G, n, 0.015, 0); return ID.fmtPop(a) + ' contractors sign on.'; }, ai: (G, n) => losing(n) && n.gold > 300 },
-  };
-
   ID.TRAITS = {
     warlord: { name: 'Warlord', desc: 'Happiest at the map table. More eager for war; the army fights a little harder.', fx: { atk: 0.06 }, ai: { agg: 0.3, peace: -10 } },
     cautious: { name: 'Cautious', desc: 'Weighs every risk twice. Slower to start wars, quicker to end them; defence a little stronger.', fx: { def: 0.05 }, ai: { agg: -0.3, peace: 12 } },

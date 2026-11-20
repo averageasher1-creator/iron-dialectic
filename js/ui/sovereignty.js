@@ -21,7 +21,7 @@
     out.push([K.drift > 0 ? 'up' : 'down', 'Being a ' + K.name.toLowerCase(), K.drift]);
     if (dp.share > 0) out.push(['up', 'The tribute (' + pct(dp.share) + ' of revenue)', dp.share * 1.2]);
     if (era) out.push(['up', 'The spirit of the age', era * 0.06]);
-    if (n.ideo === 'thirdpos' || n.ideo === 'pannat' || n.ideo === 'revival' || n.ideo === 'juche' || n.ideo === 'natsyn') out.push(['up', 'A nationalist regime', 0.45]);
+    if (n.ideo === 'thirdpos' || n.ideo === 'pannat' || n.ideo === 'revival' || n.ideo === 'juche' || n.ideo === 'natsyn' || n.ideo === 'natsoc' || n.ideo === 'nazacc') out.push(['up', 'A nationalist regime', 0.45]);
     else if (I.family === 'heterodox' || I.family === 'authoritarian' || I.family === 'socialist') out.push(['up', 'The regime’s convictions', 0.2]);
     if (over.nwars) out.push(['up', over.base + ' is at war', 0.25]);
     if (over.stab < 35) out.push(['up', over.base + ' is unstable', 0.35]);

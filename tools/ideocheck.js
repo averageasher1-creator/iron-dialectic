@@ -4,7 +4,7 @@
    node tools/ideocheck.js [ideo,ideo,...] [years] */
 'use strict';
 const ID = require('./load.js');
-const want = (process.argv[2] || 'juche,natsyn,leftacc,rightacc').split(','), yrs = +(process.argv[3] || 30);
+const want = (process.argv[2] || 'juche,natsyn,technosoc,nrx,natsoc,nazacc').split(','), yrs = +(process.argv[3] || 30);
 let bad = 0;
 const fail = (m) => { bad++; console.log('FAIL ' + m); };
 const emb = require('fs').readFileSync(require('path').join(__dirname, '../js/ui/flags.js'), 'utf8');

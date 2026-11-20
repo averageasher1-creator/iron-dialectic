@@ -282,23 +282,41 @@
     ['state', 'The national-syndicalist state', 'The syndicates are the state; the old parliament building becomes their congress hall.', [['sig', 12], ['mod', 'legit', 4, PERM, 'The syndical state']]],
     ['empire', 'The will to empire', 'A people of producers in arms claims its place among the great nations.', [['sig', 8], ['glory', 6], ['mod', 'atk', 0.05, PERM, 'The will to empire']]],
   ], [1930, 1950]);
-  tree('leftacc', 'la', [
-    ['manifesto', 'A manifesto for the future', 'A pamphlet that tells the left to stop being nostalgic and start being modern.', [['sig', 6], ['sup', 'intelligentsia', 8]]],
-    ['automation', 'The automation programme', 'Every routine job catalogued, and a date set for a machine to take it over.', [['mod', 'prod', 0.05, PERM, 'Automation programme'], ['sig', 8]]],
-    ['income', 'The guaranteed income', 'Paid to everyone from the first year, whatever the machines do.', [['mod', 'ls', 3, PERM, 'Guaranteed income'], ['sup', 'workers', 8], ['gold', -80]]],
-    ['labs', 'Public laboratories', 'Research institutes owned by the commons, publishing everything they find.', [['mod', 'sci', 0.1, PERM, 'Public laboratories'], ['techUp', 'ind']]],
-    ['week', 'The fifteen-hour week', 'The old economist’s prophecy for his grandchildren, written into law.', [['particip', 8], ['mod', 'stab', 3, PERM, 'The fifteen-hour week'], ['mod', 'prod', -0.02, PERM, 'Fewer hours']]],
-    ['postwork', 'The post-work society', 'Work becomes something people choose; the economy runs on machines and the commons.', [['sig', 12], ['mod', 'eff', 0.04, PERM, 'Post-work']]],
-    ['space', 'The space commons', 'A rocket programme owned by everyone, aimed at the Moon and then further.', [['mod', 'sci', 0.08, PERM, 'The space commons'], ['glory', 8], ['opAll', 3]]],
-  ], [1945, 1960]);
-  tree('rightacc', 'ra', [
+  tree('technosoc', 'ts', [
+    ['wire', 'Wire the revolution', 'A transmitter on every factory roof and a telex in every party cell.', [['sig', 10], ['fervor', 8]]],
+    ['broadcast', 'The world broadcast', 'Programmes in forty languages, every hour, on every wavelength the receivers of the world can catch.', [['sig', 8], seedAbroad(10, 4)]],
+    ['automate', 'Automate the heights', 'The commanding heights taken over by machines, and the workers freed for the revolution.', [['mod', 'prod', 0.06, PERM, 'Automated heights'], ['techUp', 'ind']]],
+    ['cells', 'Open-source cells', 'The manual for organising a factory council, printed in every language and smuggled across every border.', [['mod', 'opp', -0.04, PERM, 'Open-source cells'], seedAbroad(8, 6)]],
+    ['labs', 'The red laboratories', 'Every university turned over to the problems of the revolution.', [['mod', 'sci', 0.12, PERM, 'Red laboratories'], ['sup', 'intelligentsia', 8]]],
+    ['velocity', 'Revolutionary velocity', 'The doctrine settled: the revolution that slows down dies, so it will never slow down.', [['sig', 15], ['mod', 'speed', 0.08, PERM, 'Revolutionary velocity']]],
+    ['world', 'The planetary commune', 'One network, one plan, one humanity, and the last borders erased by the signal.', [['sig', 12], ['opAll', -4], seedAbroad(12, 6)]],
+  ], [1940, 1958]);
+  tree('nrx', 'nx', [
     ['board', 'The board of the nation', 'Parliament replaced by a board, voters by shareholders, the president by a chief executive.', [['sig', 8], ['auth', 10]]],
-    ['zones', 'The free zones', 'Every port a free zone, and every free zone a separate jurisdiction for sale.', [['mod', 'trade', 0.08, PERM, 'Free zones'], ['gold', 120]]],
-    ['labs', 'The private laboratories', 'Corporate research parks with their own police and no ethics committee.', [['mod', 'sci', 0.1, PERM, 'Private laboratories'], ['sup', 'intelligentsia', 6]]],
+    ['zones', 'The free zones', 'Every port a free zone, and every free zone a separate jurisdiction for sale.', [['mod', 'trade', 0.08, PERM, 'Free zones'], ['gold', 150]]],
+    ['labs', 'The private laboratories', 'Corporate research parks with their own police and no ethics committee.', [['mod', 'sci', 0.12, PERM, 'Private laboratories'], ['techUp', 'ind']]],
     ['exit', 'The right of exit', 'Leave whenever you like. We will not miss you.', [['mod', 'unrest', -3, PERM, 'The right of exit'], ['pop', -0.02]]],
-    ['machine', 'Capital’s own machines', 'Factories that order their own spare parts and dismiss their own managers.', [['mod', 'prod', 0.05, PERM, 'Machine capital'], ['techUp', 'ind']]],
-    ['sovereign', 'The sovereign corporation', 'The state is a company, the country its property, the citizens its customers.', [['sig', 12], ['mod', 'eff', 0.04, PERM, 'The sovereign corporation']]],
-    ['singularity', 'The singularity', 'The board’s computers propose the dividend, and nobody can explain how they arrived at it.', [['sig', 10], ['mod', 'prod', 0.05, PERM, 'The singularity'], ['grievance', 8]]],
-  ], [1945, 1960]);
+    ['machine', 'Capital’s own machines', 'Factories that order their own spare parts and dismiss their own managers.', [['mod', 'prod', 0.08, PERM, 'Machine capital'], ['build', ID.B.FACTORY, 2]]],
+    ['sovereign', 'The sovereign corporation', 'The state is a company, the country its property, the citizens its customers.', [['sig', 15], ['mod', 'eff', 0.05, PERM, 'The sovereign corporation']]],
+    ['singularity', 'The singularity', 'The board’s computers propose the dividend, and nobody can explain how they arrived at it.', [['sig', 15], ['mod', 'sci', 0.1, PERM, 'The singularity'], ['techUp', 'ind'], ['grievance', 10]]],
+  ], [1940, 1958]);
+  tree('natsoc', 'nz', [
+    ['coord', 'Coordination', 'Every union, club, newspaper and state government brought into line with the party in a single season.', [['sig', 8], ['auth', 15], ['sup', 'workers', -6]]],
+    ['rearm', 'The four-year plan', 'Rearmament and self-sufficiency in four years, whatever it costs.', [['mod', 'prod', 0.05, PERM, 'The four-year plan'], ['build', ID.B.FACTORY, 1], ['fn', (G, n) => { n.sigx.bills = (n.sigx.bills || 0) + 150; }], ['note', 'Rearmament bills +150']]],
+    ['diplomacy', 'The diplomacy of bluff', 'Walk out of the League, march into the demilitarised zone, and see who stops you.', [['fn', (G, n) => { n.sigx.patience = Math.min(120, (n.sigx.patience == null ? 100 : n.sigx.patience) + 25); }], ['note', 'The world’s patience +25'], ['glory', 6]]],
+    ['wehr', 'The army of the people', 'Conscription restored, the army trebled, and the officers made to swear an oath to the Leader in person.', [['mod', 'atk', 0.06, PERM, 'The new army'], ['sup', 'military', 8], ['mod', 'coup', -0.2, PERM, 'The oath']]],
+    ['axis', 'The axis', 'A pact with every regime that hates the same enemies.', [['fn', (G, n) => { for (const o of ID.alive(G)) if (o !== n && ID.ideo(o).family === 'authoritarian') ID.addOpBoth(G, n.id, o.id, 15); }], ['note', 'Authoritarian states think better of you']]],
+    ['space', 'Living space', 'The doctrine made policy: the lands beyond the border are to be conquered and colonised, and the people living there treated as an obstacle.', [['sig', 12], ['claimsAll'], ['opAll', -8]]],
+    ['total', 'Total war', 'Every man, woman and machine turned to the war. There is no way back from here.', [['sig', 15], ['mod', 'atk', 0.06, PERM, 'Total war'], ['law', 'mobil', 'total']]],
+  ], [1930, 1942]);
+  tree('nazacc', 'na', [
+    ['bunker', 'Into the bunker', 'The government moves underground. Above it the city burns; below, the maps still show armies that no longer exist.', [['sig', 10], ['auth', 10]]],
+    ['levy', 'The last levy', 'Every male from fifteen to sixty under arms.', [['fn', (G, n) => { const add = Math.max(0, Math.min(n.pop * 0.03, n.pop * ID.maxMob(n) * 1.3 - n.troops)); n.troops += add; }], ['note', 'Troops +3% of the population'], ['mod', 'growth', -0.1, 120, 'The last levy']]],
+    ['scorch', 'Scorched earth', 'Nothing is to fall into the enemy’s hands intact: not a bridge, not a factory, not a well.', [['mod', 'def', 0.12, PERM, 'Scorched earth'], ['mod', 'prod', -0.06, PERM, 'Scorched earth']]],
+    ['fanatics', 'The fanatics', 'Units of the faithful who will die rather than retreat, and who shoot those who try.', [['mod', 'atk', 0.08, PERM, 'The fanatics'], ['mod', 'wePace', -0.3, PERM, 'The fanatics']]],
+    ['wonder', 'The wonder weapons', 'Rockets, jet fighters and rumours of worse, built by slave labour under the mountains.', [['mod', 'atk', 0.06, PERM, 'Wonder weapons'], ['gold', -150], ['sig', 6]]],
+    ['ash', 'The doctrine of ash', 'The regime says openly what it wants: if the nation cannot win, it does not deserve to survive.', [['sig', 20], ['stab', -10]]],
+    ['twilight', 'Twilight', 'An opera played on the radio while the last front collapses.', [['sig', 25], ['mod', 'atk', 0.1, 60, 'Twilight']]],
+  ], [1935, 1945]);
 
 })();

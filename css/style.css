@@ -562,6 +562,7 @@ ul.plus li::marker { content: "+  "; color: var(--olive); font-weight: 700; } ul
 #madban.on { opacity: 0.95; }
 #madban.on.s1 { height: 84px; } #madban.on.s2 { height: 112px; } #madban.on.s3 { height: 146px; } #madban.on.s4 { height: 190px; }
 #madban.k-crown { background: #17140f; color: #f0c860; border-top: 6px double #c99a36; border-bottom: 6px double #c99a36; }
+#madban.k-fire { background: linear-gradient(180deg, #1c0804, #3a0d04 60%, #1c0804); color: #ff8a3a; border-top: 6px solid #c8281e; border-bottom: 6px solid #c8281e; text-shadow: 0 0 18px rgba(255, 90, 20, 0.7); }
 #madban.k-leader { background: #b5221a; color: #f4ecd8; border-top: 6px solid #17140f; border-bottom: 6px solid #17140f; }
 #madban .mb-track { white-space: nowrap; width: 100%; }
 #madban .mb-track > div { display: inline-block; animation: madscroll var(--loop, 16s) linear infinite; }

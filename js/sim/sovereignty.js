@@ -151,7 +151,7 @@
     // resistance: the kind, the ideology, the share taken, the overlord's strength and troubles, the era
     let d = K.drift + dp.share * 1.2 + era * 0.06;
     const I = ID.ideo(n);
-    if (n.ideo === 'thirdpos' || n.ideo === 'pannat' || n.ideo === 'revival' || n.ideo === 'juche' || n.ideo === 'natsyn') d += 0.45; else if (I.family === 'heterodox' || I.family === 'authoritarian' || I.family === 'socialist') d += 0.2;
+    if (n.ideo === 'thirdpos' || n.ideo === 'pannat' || n.ideo === 'revival' || n.ideo === 'juche' || n.ideo === 'natsyn' || n.ideo === 'natsoc' || n.ideo === 'nazacc') d += 0.45; else if (I.family === 'heterodox' || I.family === 'authoritarian' || I.family === 'socialist') d += 0.2;
     if (over.nwars) d += 0.25;
     if (over.stab < 35) d += 0.35;
     if (over.lostWarAt != null && over.age - over.lostWarAt < 24) d += 0.5;

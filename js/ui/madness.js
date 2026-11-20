@@ -12,6 +12,7 @@
   M.kind = (n) => (n && n.ideo === 'absmon' ? 'crown' : n && n.ideo === 'personalist' ? 'leader' : n && ID.ideo(n) && ID.ideo(n).banner ? ID.ideo(n).banner : null);
   M.level = function (G, n) {
     const k = M.kind(n); if (!k || !n.alive) return 0;
+    if (k === 'fire') return clamp(30 + (n.sig || 0) * 0.45 + (n.nwars ? 10 : 0) + ((n.sig || 0) < 25 ? 20 : 0), 0, 100); // a roaring fire and a dying one both scream
     let v = (k === 'crown' ? 22 : 30) + n.auth * 0.2 + (k === 'leader' ? n.charisma : n.tradition) * 0.15 + Math.min(20, n.age / 12);
     v += ({ propaganda: 14, censored: 8, regulated: 2, free: -12 })[n.laws.press] || 0;
     v += ({ terror: 14, secret: 8, police: 2, liberties: -8 })[n.laws.security] || 0;
@@ -36,8 +37,14 @@
       ['LONG LIVE {LN}. LONGER THAN YOU.', 'This message has been approved by {L}.', 'The Leader does not sleep. He watches over you instead.', 'Smile. The cameras are for your safety.', 'Applause will now continue. Applause will now continue.'],
       ['HE IS LISTENING', 'THERE IS ONLY {LN}', 'DO NOT STOP CLAPPING', 'YOU HAVE ALWAYS LOVED HIM', 'APPLAUD'],
     ],
+    fire: [
+      ['THE FIRE IS HUNGRY', 'Every border is kindling.', 'Nothing behind us. Only forward.', '{N} burns brighter this month.', 'The map must grow, or the fire goes out.'],
+      ['There is no peace. There was never going to be peace.', 'The factories feed the front. The front feeds the fire.', 'Count the provinces. Count them again.', 'The neighbours have seen the smoke.', 'What will the fire eat when the world runs out?'],
+      ['THE FIRE DOES NOT ASK', 'BURN THE BRIDGES BEHIND US', 'There is nobody left to surrender to.', 'The allies are fuel too.', 'Ash is also a kind of victory.'],
+      ['FEED IT', 'MORE', 'NOTHING IS LEFT', 'ASH', 'IT IS EATING US'],
+    ],
   };
-  const MARK = { crown: 'THE CROWN REMEMBERS', leader: '{LN} IS WATCHING' };
+  const MARK = { crown: 'THE CROWN REMEMBERS', leader: '{LN} IS WATCHING', fire: 'THE FIRE MUST BE FED' };
 
   let root = null, track = null, curKind = null, tNext = 20, tOff = 0, showing = false;
   const reduced = () => window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -59,7 +66,7 @@
     return out;
   }
   function show(n, kind, st) {
-    const L = slogans(n, kind, st), sep = '<i>' + (kind === 'crown' ? '♛' : '★') + '</i>';
+    const L = slogans(n, kind, st), sep = '<i>' + (kind === 'crown' ? '♛' : kind === 'fire' ? '▲' : '★') + '</i>';
     const run = L.map((t) => '<b>' + esc(t) + '</b>').join(sep) + sep;
     track.innerHTML = '<div>' + run + run + '</div>';
     root.className = 'on k-' + kind + ' s' + st + (reduced() ? ' still' : '');

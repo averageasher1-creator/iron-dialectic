@@ -51,8 +51,10 @@
     revival: B('Council of Guardians', 'Assembly of Experts', 48, ['Commander of the Guard', 'Minister of Intelligence', 'Head of the Foundations', 'Leader of Friday Prayers', 'Foreign Minister'], 'disgrace'),
     juche: B('Political Bureau', 'Conference of the Party', 60, ['Minister of the People’s Armed Forces', 'Minister of State Security', 'Chairman of the State Planning Commission', 'Director of Propaganda and Agitation', 'Foreign Minister'], 'purge'),
     natsyn: B('National Council of the Movement', 'Congress of the Syndicates', 48, ['Chief of the Militias', 'Delegate for Public Order', 'National Delegate of the Syndicates', 'National Delegate for Propaganda', 'Foreign Minister'], 'purge'),
-    leftacc: B('Cabinet of the Commons', 'Platform Conference', 48, ['Minister of Defence Systems', 'Minister of Civil Liberties', 'Minister of Automation', 'Minister of the Future', 'Foreign Minister'], 'dismiss'),
-    rightacc: B('Board of Directors', 'Shareholders’ Meeting', 36, ['Director of Security Contracts', 'Director of Compliance', 'Chief Operating Officer', 'Chief Narrative Officer', 'Director of External Markets'], 'dismiss'),
+    technosoc: B('Network Presidium', 'Congress of the Network', 36, ['Commissar for Lightning War', 'Commissar for Signal Security', 'Chairman of the Automation Council', 'Director of the Broadcast', 'Commissar for World Revolution'], 'purge'),
+    nrx: B('Board of Directors', 'Shareholders’ Meeting', 36, ['Director of Security Contracts', 'Director of Compliance', 'Chief Operating Officer', 'Chief Scientist', 'Director of External Markets'], 'dismiss'),
+    natsoc: B('The Leader’s Circle', 'Party Rally', 36, ['Minister of War', 'Chief of the Political Police', 'Plenipotentiary for Rearmament', 'Minister of Propaganda', 'Foreign Minister'], 'purge'),
+    nazacc: B('The Bunker', 'Situation Conference', 12, ['Chief of the Supreme Command', 'Chief of the Terror Apparatus', 'Minister of Destruction', 'Minister of Propaganda', 'Foreign Minister'], 'purge'),
     natpop: B('Movement Leadership', 'Party Rally', 36, ['Commander of the Legions', 'Chief of the Political Police', 'Minister of Economics', 'Chief of Propaganda', 'Foreign Minister'], 'purge'),
   };
   R.purgeName = { purge: 'Purge', recall: 'Recall', dismiss: 'Dismiss', disgrace: 'Disgrace' };
@@ -196,20 +198,30 @@
       L('jc_army', 'The army first', 'The army is the party, the people and the state.', 'junta', { atk: 0.06, coup: -0.2, ls: -2 }, [['sup', 'military', 8]], 0.2, (n) => (n.nwars || n.a.threatened ? 2 : 0.8)),
       L('jc_zones', 'The special zones', 'A fenced coastal city where foreign firms may build, and nobody else may go.', 'marketsoc', { trade: 0.06, prod: 0.03, legit: -2 }, [['gold', 60]], -0.6, (n) => (n.ls < 35 ? 1.6 : 0.4)),
     ],
+    technosoc: [
+      L('ts_faster', 'Faster', 'Every resource for the broadcast and the brigades: the revolution must reach the next country before the last one cools.', 'technosoc', { atk: 0.05, sci: 0.05, ls: -1 }, [], 0.8, () => 1.4),
+      L('ts_build', 'Build the machine', 'Automate at home first; a richer revolution will spread itself.', 'cybernetic', { prod: 0.05, eff: 0.03 }, [], -0.4, (n) => (n.stab < 45 ? 1.6 : 0.6)),
+      L('ts_apparatus', 'Discipline the network', 'Unify the wires under one centre and one line.', 'ml', { stab: 3, coup: -0.2 }, [['bureau', 8]], -0.3, (n) => (n.coupRisk > 0.005 ? 1.6 : 0.4)),
+    ],
+    nrx: [
+      L('nx_curve', 'Up and to the right', 'Every quarter faster than the last, whatever it costs anyone.', 'nrx', { prod: 0.05, sci: 0.05, unrest: 2 }, [], 0.8, () => 1.4),
+      L('nx_patch', 'The patchwork', 'Let every city become its own company and compete for residents.', 'minarchy', { trade: 0.06, auth: -0.1 }, [], 0.2, () => 0.8),
+      L('nx_ceo', 'The chief executive rules', 'One will, one vision, no committee.', 'personalist', { auth: 0.15, coup: -0.15, legit: -2 }, [], 0.2, (n) => (n.stab < 40 ? 1.8 : 0.6)),
+    ],
+    natsoc: [
+      L('ns_guns', 'Guns before butter', 'Every factory converted, every budget line turned to the army.', 'natsoc', { atk: 0.06, ls: -2 }, [], 0.25, () => 1.3),
+      L('ns_party', 'The party above the state', 'The movement’s own men in every ministry, every court and every barracks.', 'natsoc', { coup: -0.25, unrest: -2 }, [['grievance', 6]], 0.2, (n) => (n.coupRisk > 0.004 ? 1.8 : 0.8)),
+      L('ns_respect', 'Respectability', 'The industrialists and the generals reassured: the revolution is over.', 'corporatist', { stab: 3, conf: 6 }, [['sup', 'capital', 8], ['sup', 'military', 6]], -0.6, (n) => (n.stab < 40 ? 1.6 : 0.5)),
+    ],
+    nazacc: [
+      L('nz_fire', 'Total destruction', 'There will be nothing left for the victors.', 'nazacc', { atk: 0.08, prod: -0.05 }, [], 1.0, () => 1.5),
+      L('nz_hold', 'Hold every metre', 'No retreat anywhere, for any reason.', 'nazacc', { def: 0.1, regen: -0.1 }, [], 0.6, (n) => (n.a.losing ? 2 : 0.7)),
+      L('nz_terms', 'Feel for terms', 'A few officers make quiet contact with the enemy through a neutral embassy.', 'junta', { stab: 2 }, [], -1.0, (n) => (n.we > 70 ? 1.5 : 0.2)),
+    ],
     natsyn: [
       L('ns_pending', 'The pending revolution', 'Land, banks and syndicates: finish what the movement promised.', 'natsyn', { prod: 0.03, legit: 2 }, [['sup', 'capital', -6], ['sup', 'workers', 4]], 0.5, () => 1.2),
       L('ns_order', 'Order and the employers', 'Shelve the revolution and let the industrialists run the syndicates in peace.', 'corporatist', { stab: 3, conf: 6 }, [['sup', 'capital', 8], ['sup', 'workers', -6]], -0.5, (n) => (n.gold < 50 ? 1.6 : 0.6)),
       L('ns_empire', 'The will to empire', 'A people of producers needs room: the squads become regiments.', 'natsyn', { atk: 0.06, trade: -0.04 }, [], 0.3, (n) => (n.nwars ? 1.8 : 0.7)),
-    ],
-    leftacc: [
-      L('la_auto', 'Full automation', 'Every routine job to the machines within a decade.', 'leftacc', { prod: 0.04, unrest: 2 }, [], 0.6, () => 1.3),
-      L('la_income', 'Income before machines', 'First the guaranteed income, then the automation.', 'demsoc', { ls: 2, stab: 2 }, [['gold', -60]], -0.2, (n) => ((n.a.unrest || 0) > 30 ? 1.8 : 0.7)),
-      L('la_network', 'The planning network', 'The common platforms wired together into one public plan.', 'cybernetic', { eff: 0.05 }, [], 0.2, (n) => (n.tech.ind >= 5 ? 1.4 : 0.5)),
-    ],
-    rightacc: [
-      L('ra_growth', 'Growth above all', 'Every quarter faster than the last.', 'rightacc', { prod: 0.05, unrest: 2 }, [], 0.6, () => 1.3),
-      L('ra_patch', 'The patchwork', 'Let every city become its own company and compete for residents.', 'minarchy', { trade: 0.06, auth: -0.1 }, [], 0.2, () => 0.8),
-      L('ra_ceo', 'The chief executive rules', 'One will, one vision, no committee.', 'personalist', { auth: 0.15, coup: -0.15, legit: -2 }, [], 0.2, (n) => (n.stab < 40 ? 1.8 : 0.6)),
     ],
   };
 })();

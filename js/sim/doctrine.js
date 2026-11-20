@@ -50,6 +50,7 @@
       const k = Dc.mastered(n) ? 1.25 : 1;
       for (const key in fx) { const v = fx[key]; if (!v) continue; const F = Dc.FX[key], good = F ? (F[2] ? v < 0 : v > 0) : v > 0; m[key] = v * (good ? k : 1); }
     }
+    if (D && D.month && n.alive) D.month(G, n); // doctrines with mechanics of their own (data/accel.js)
     for (const tr of (n.leader && n.leader.traits) || []) { const T = ID.TRAITS[tr]; if (!T) continue; for (const key in T.fx) m[key] = (m[key] || 0) + T.fx[key]; }
     n.sigm = m;
   };

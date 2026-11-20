@@ -163,6 +163,7 @@
   D.wantsPeace = function (G, X, Y) {
     const w = D.warOf(G, X.id, Y.id); if (!w) return false;
     if (w.cb === 'civil') return false;
+    if (ID.ideo(X).flags.noPeace && (X.sig || 0) > 10) return false; // the fire cannot make peace while it burns
     const s = D.warScore(G, X, Y), months = (G.tick - w.start) / 30;
     if (months < 4) return false;
     const attacker = w.a === X.id;
@@ -214,6 +215,7 @@
     if (civil) { D.resolveCapitulation(G, L, Wn, 'annex'); return; }
     if (L.id === G.player) { ID.Game.defeat(G, 'conquered', { by: Wn.id }); return; }
     if (Wn.id === G.player) { L.a.capitulating = G.tick; ID.Events.queue(G, Wn, 'capitulation', { loser: L.id }); return; }
+    if (ID.ideo(Wn).flags.noPeace) { D.resolveCapitulation(G, L, Wn, 'annex'); return; } // the fire consumes; it does not install governments
     // a great power may keep a small defeated state as a protectorate instead of annexing it
     if (ID.Sov && !L.dep && ID.isMajor(G, Wn) && !ID.isMajor(G, L) && L.tiles < Wn.tiles * 0.4 && !Wn.dep && G.rng.chance(0.3)) { D.resolveCapitulation(G, L, Wn, 'release'); ID.Sov.bind(G, L, Wn, 'protectorate'); return; }
     const I = ID.ideo(Wn);
@@ -351,6 +353,7 @@
       const s = op * 0.8 + aff * 0.6 + common - 38;
       return { ok: s > 0 && aff > -5, why: s > 0 && aff > -5 ? '' : aff <= -5 ? 'Your systems are too far apart for an alliance.' : 'Relations are not close enough (' + Math.round(op) + ').', s };
     }
+    if (kind === 'peace' && If.flags.noPeace && (from.sig || 0) > 10) return { ok: false, why: 'The Bunker does not make peace. Only if the fire burns down below 10 will anyone listen.' };
     if (kind === 'peace') { const ok = D.wantsPeace(G, to, from); return { ok, why: ok ? '' : 'They believe they can still win.' }; }
     return { ok: true, why: '' };
   };

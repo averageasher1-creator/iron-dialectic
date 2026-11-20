@@ -26,6 +26,7 @@
     h += '<p class="dcd">' + esc(D.desc) + '</p>';
     if (L.length) h += '<div class="dcfx">' + fxSpans(L) + '</div>';
     h += '<div class="dcn"><span>' + esc(D.low) + '</span><span>' + esc(D.high) + '</span></div>';
+    if (D.extra) { let rows = []; try { rows = D.extra(n, G) || []; } catch (e) { rows = []; } if (rows.length) h += '<div class="dcfav">' + rows.map((r) => esc(r[0]) + ': <b class="' + (r[2] === false ? 'bad' : r[2] ? 'good' : '') + '">' + esc(r[1]) + '</b>').join('<br>') + '</div>'; }
     if (n.ideo === 'absmon') { const f = n.sigx && ID.DOC_FAV[n.sigx.fav]; h += '<div class="dcfav">In favour at court: <b>' + (f ? esc(f.name) : 'no one in particular') + '</b>' + (f ? ' <span class="dim">' + fxSpans(Dc.describe(f.fx)) + '</span>' : '') + '</div>'; }
     h += '<div class="dcacts">' + D.acts.map((a) => {
       const why = Dc.actBlock(G, n, a), afx = UI.fxHtml(a.fx, n).replace(/<\/span>/g, '</span> ');

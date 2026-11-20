@@ -2,7 +2,7 @@
 
 A grand strategy of belief and power, playable in the browser. You run a state from 1910 to
 1976. War is simple to operate (one troop pool, a percentage slider, a fluid pixel front); the
-depth is in politics. Each of the 29 ideologies changes how the economy works, how the army is
+depth is in politics. Each of the 31 ideologies changes how the economy works, how the army is
 raised, which factions can bring you down, where legitimacy comes from, what you are allowed to
 order directly, and what winning means.
 
@@ -48,14 +48,19 @@ again to cancel it.
 
 ## What is in it
 
-- **29 ideologies** in six families, each with its own economy model (market, mixed, plan,
+- **31 ideologies** in six families, each with its own economy model (market, mixed, plan,
   workers' councils, corporatist pact, agrarian rent, commercial, cybernetic), decision-making
   rules, recruitment laws, attack doctrine, legitimacy sources, drift paths and grand objective.
-  Sectarian rivals inside a family treat each other as enemies. The newest four: **Juche** (a
+  Sectarian rivals inside a family treat each other as enemies. The newest: **Juche** (a
   self-reliant fortress around a hereditary Leader), **National Syndicalism** (vertical syndicates
-  and shock squads, the national revolution against bosses and parliament), **Left
-  Accelerationism** (full automation and a guaranteed income) and **Right Accelerationism** (the
-  state as a sovereign corporation riding a runaway market).
+  and shock squads), **National Socialism** (rearmament on secret credit that only plunder repays,
+  ultimatums while the world's patience lasts, radicalisation that only ratchets upward) and three
+  **accelerationist** systems with huge advantages and a gauge that collapses if you slow down:
+  **Techno-Socialist Accelerationism** (the revolution broadcast abroad every month, ripe
+  countries tipped into revolution), **NRX Accelerationism** (industry and research compounding
+  into an intelligence explosion) and **Nazi Accelerationism**, which a radicalised National
+  Socialist state can become: a fire that must keep conquering or burn out, with devastating
+  choices every few months.
 - **Doctrines**: every system plays differently. Each has its own gauge with its own logic (party
   unity, revolutionary momentum, council vitality, royal will, zeal, credit, national enthusiasm and
   so on), actions only it can take, a way of fighting (commissars, people's war, lightning war,
