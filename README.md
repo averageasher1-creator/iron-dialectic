@@ -71,6 +71,14 @@ again to cancel it.
   convictions pull the regime toward other systems; the disloyal and ambitious plot. Win them
   over, name an heir, or purge them. Every system holds its own session (a party congress, an
   imperial council, a party rally, a new government's programme) that sets the line for years.
+- **Two countries built around the radical systems.** Tessaly is a Techno-Socialist Accelerationist
+  network of mountain cantons with a transmitter on every peak (the Wire and the Valleys; Verano's unions,
+  Cassine's bankers, Karsova's party; four destinies from the Planetary Signal to an Alpine Fortress under
+  its own security chief). Meridia is an NRX sovereign corporation founded when its bondholders foreclosed on
+  the state (the Patchwork; Antara's copper and colonels, the Cassine exchange; the Singularity, the
+  Patchwork, the Crowned Company, and the secret road of the Model). The two race for the thinking machine.
+- **No forced ending.** Reaching a goal is recorded as a victory and you may keep playing; so you may after
+  another power's domination, past 1976, or after a coup or revolution that leaves your country standing.
 - **Every country has its own story** on *The Three Continents*: a real cast around the ruler and a
   national question (Aurelia's land, Pavon's fortress of bunkers, Karsova's villages, Suyan's
   river, Lys's toll on the straits...) with national actions, turning points at each end and a

@@ -78,6 +78,7 @@
     for (const n of ID.alive(G)) {
       const pr = V.progress(G, n); let won = null;
       for (const v of pr) {
+        if (n.id === G.player && G.won && G.won[v.id]) continue; // already achieved: the campaign carries on
         let ok = v.p >= 0.999;
         if (v.id === 'objective') ok = v.parts.every((x) => x[1] >= x[2]);
         if (v.id === 'ideological') ok = v.parts.every((x) => x[1] >= x[2]);
@@ -86,9 +87,10 @@
       }
       if (!won) continue;
       if (n.id === G.player) { Gm.victory(G, won.id, won.name); return; }
+      if (won.id === 'domination' && G.ack && G.ack['dom' + n.id]) continue;
       if (won.id === 'domination') { if (G.player) { Gm.defeat(G, 'eclipsed', { by: n.id, how: won.name }); return; } G.over = { result: 'ai', type: won.id, by: n.id, year: y }; return; }
     }
-    if (y >= ID.END_YEAR) {
+    if (y >= ID.END_YEAR && !G.endless) {
       const pl = G.nations[G.player];
       if (pl && pl.alive) { const rk = ID.rankOf(G, pl, 'score'); if (rk === 1) Gm.victory(G, 'verdict', 'The Verdict of History'); else Gm.end(G, 'survived', 'verdict', { rank: rk }); }
       else if (!G.player) G.over = { result: 'time', type: 'verdict', year: y };
@@ -148,9 +150,29 @@
   Gm.victory = function (G, type, name) {
     if (G.over) return;
     const n = G.nations[G.player];
+    (G.won = G.won || {})[type] = ID.yearOf(G.tick);
     ID.chron(G, 'end', n.name + ' achieves ' + name + '.', n.id);
     G.over = { result: 'victory', type, name, year: ID.yearOf(G.tick), nation: n.id };
     ID.sfx(G, 'victory');
+  };
+  /* Nothing has to end the campaign while the player's state still stands: after a victory, after another power's
+     domination, at the close of the century, or after losing power to a coup or a revolution (the player then
+     leads the new regime), the player may carry on. */
+  Gm.canCarryOn = function (G) {
+    const o = G.over, n = o && G.nations[G.player];
+    if (!n || !n.alive || G.tut) return false;
+    return o.result !== 'defeat' || o.type === 'eclipsed' || ((o.type === 'coup' || o.type === 'revolution') && o.info && ID.IDEOLOGIES[o.info.ideo]);
+  };
+  Gm.carryOn = function (G) {
+    if (!Gm.canCarryOn(G)) return false;
+    const o = G.over, n = G.nations[G.player];
+    G.over = null;
+    if (o.result === 'defeat' && (o.type === 'coup' || o.type === 'revolution')) { ID.Politics.changeIdeology(G, n, o.info.ideo, o.type, o.info.backer); ID.chron(G, 'carry', 'The new rulers of ' + n.name + ' take up the government.', n.id); }
+    else if (o.type === 'eclipsed') { (G.ack = G.ack || {})['dom' + o.info.by] = 1; ID.chron(G, 'carry', n.name + ' refuses to accept the verdict and fights on.', n.id); }
+    else if (o.type === 'verdict' || o.result === 'survived') { G.endless = true; ID.chron(G, 'carry', 'The century closes, and ' + n.name + ' goes on.', n.id); }
+    else ID.chron(G, 'carry', n.name + ' carries on after ' + (o.name || 'its triumph') + '.', n.id);
+    G.paused = true; G.uiDirty = true;
+    return true;
   };
   Gm.end = function (G, result, type, info) { if (G.over) return; G.over = { result, type, info, year: ID.yearOf(G.tick), nation: G.player }; };
 
@@ -231,7 +253,7 @@
       prov: G.provinces.slice(1).map((P) => [P.core, Math.round(P.unrest * 10) / 10, P.opp, Math.round(P.oppStr * 10) / 10, Math.round(P.integ), P.lastOwner, P.sponsor, P.oil || 0, P.oilFound || 0, P.oilCo || 0, P.oilShare || 0, P.oilAt || 0, P.canal || 0]), fronts: G.fronts || null,
       attacks: G.attacks.map((a) => ({ id: a.id, from: a.from, to: a.to, troops: a.troops, committed: a.committed, style: a.style, amphib: a.amphib, taken: a.taken })),
       boats: G.boats, missiles: G.missiles, builds: G.builds, dip: G.dip, blocs: G.blocs, news: G.news.slice(-60), chronicle: G.chronicle, world: G.world, flags: G.flags,
-      evq: G.evq, tray: G.tray || [], votes: G.votes, nextId: G.nextId, over: G.over, tut: G.tut, offers: G.offers || [], shock: G.shock || [], historical: !!G.historical, story: G.story || null, beach: G.beach || [], press: G.press || null,
+      evq: G.evq, tray: G.tray || [], votes: G.votes, nextId: G.nextId, over: G.over, won: G.won || null, ack: G.ack || null, endless: !!G.endless, tut: G.tut, offers: G.offers || [], shock: G.shock || [], historical: !!G.historical, story: G.story || null, beach: G.beach || [], press: G.press || null,
     };
     return JSON.stringify(o, (k, v) => (k === 'dem' || k === 'lsHist' ? undefined : typeof v === 'number' && !Number.isInteger(v) ? Math.round(v * 1000) / 1000 : v));
   };
@@ -247,7 +269,7 @@
       nations: o.nations, player: o.player, attacks: [], boats: o.boats || [], missiles: o.missiles || [], builds: o.builds || [], blist: [],
       dip: o.dip || {}, warM: new Uint8Array(MAXN * MAXN), rel: new Float32Array(MAXN * MAXN), blocs: o.blocs, wars: [], border: [],
       news: o.news || [], chronicle: o.chronicle || [], stats: { pop: 1, gdp: 1, trade: 1, byIdeo: {}, byFam: {} }, world: o.world,
-      flags: o.flags || {}, dirty: [], dirtyAll: true, radList: [], mapMode: 'political', fx: [], sfx: [], capLost: [], evq: o.evq || [], tray: o.tray || [], votes: o.votes || [], over: o.over || null, nextId: o.nextId || 1, fortsDirty: true, tut: o.tut || null, offers: o.offers || [], shock: o.shock || [], beach: o.beach || [], press: o.press || null,
+      flags: o.flags || {}, dirty: [], dirtyAll: true, radList: [], mapMode: 'political', fx: [], sfx: [], capLost: [], evq: o.evq || [], tray: o.tray || [], votes: o.votes || [], over: o.over || null, won: o.won || null, ack: o.ack || null, endless: !!o.endless, nextId: o.nextId || 1, fortsDirty: true, tut: o.tut || null, offers: o.offers || [], shock: o.shock || [], beach: o.beach || [], press: o.press || null,
     };
     G.rng.s = o.rng >>> 0;
     G.historical = !!o.historical; G.story = o.story || null; G.fronts = o.fronts || null; if (G.historical && !G.story) ID.Story.init(G);

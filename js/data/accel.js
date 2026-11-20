@@ -62,9 +62,9 @@
   /* ================================================================ Techno-Socialist Accelerationism */
   D.technosoc = {
     name: 'Revolution at the Speed of the Wire', gauge: 'Velocity', init: 70,
-    desc: 'How fast the revolution is moving. It falls hard every month unless the revolution spreads: movements growing abroad, revolutions carried into other countries, offensives that advance. High velocity is the strongest research and the fastest army in the game; low velocity cripples both and hands the state to its bureaucrats.',
-    drift: (n, G) => { const x = n.sigx || {}; const recent = n.a.spreadAt != null && G.tick - n.a.spreadAt < 720 ? 1.5 : 0; return -2.6 + recent + Math.min(2.2, (x.abroad || 0) * 0.08) + (n.nwars && !losing(n) ? 0.6 : 0) - (losing(n) ? 1 : 0) + (n.tech.ind - 4) * 0.1; },
-    fx: (n, v) => { const d = v - 50; return { sci: d * 0.008, atk: d * 0.004, speed: d * 0.003, prod: d * 0.002, legit: d * 0.12, unrest: d < 0 ? -d * 0.08 : 0, driftK: v < 35 ? (35 - v) * 0.04 : 0 }; },
+    desc: 'How fast the revolution is moving. It falls hard every month unless the revolution spreads or the machines advance: movements growing abroad, revolutions carried into other countries, offensives that advance, new technology. High velocity is the strongest research and the fastest army in the game; low velocity cripples both and hands the state to its bureaucrats.',
+    drift: (n, G) => { const x = n.sigx || {}; const recent = n.a.spreadAt != null && G.tick - n.a.spreadAt < 720 ? 1.5 : 0; return -2.6 + recent + (x.techGain || 0) * 3 + Math.min(2.2, (x.abroad || 0) * 0.08) + (n.nwars && !losing(n) ? 0.6 : 0) - (losing(n) ? 1 : 0) + (n.tech.ind - 4) * 0.1; },
+    fx: (n, v) => { const d = v - 50; return { sci: d * 0.008, atk: d * 0.004, speed: d * 0.003, prod: d * 0.002, ls: d > 0 ? d * 0.04 : 0, legit: d * 0.12, unrest: d < 0 ? -d * 0.08 : 0, driftK: v < 35 ? (35 - v) * 0.04 : 0 }; },
     low: 'Low velocity: a revolution standing still, and a bureaucracy noticing.',
     high: 'High velocity: the signal is in every country before the censors wake up.',
     acts: [
@@ -79,16 +79,17 @@
       run: (G, n, t) => { ID.docSeed(G, t, 'technosoc', 25, 6, n.id); if (t.id !== G.player && t.stab < 45 && !ID.Politics.inCivil(G, t) && ID.Politics.movement(G, t).ideo === 'technosoc') { ID.Politics.uprising(G, t, 'technosoc'); return 'The signal goes out, and ' + t.base + ' rises.'; } return 'The signal goes out across ' + t.base + '.'; },
       ai: (G, n) => n.nwars > 0 },
     month: (G, n) => {
-      const x = n.sigx;
+      const x = n.sigx, ts = n.tech.ind + n.tech.mil + n.tech.agr;
+      x.techGain = x.tech0 == null ? 0 : Math.max(0, ts - x.tech0); x.tech0 = ts;
       // one network: however many techno-socialist states there are, they share one broadcast
       const nets = ID.alive(G).filter((o) => o.ideo === 'technosoc'), net = Math.max(1, nets.length);
       x.net = net; x.hub = nets.every((o) => o.tiles <= n.tiles); // the largest is the hub of the network
-      x.reach = seedSome(G, n, 'technosoc', Math.max(1, Math.round((1 + Math.floor(n.sig / 25)) / net)), (4 + n.sig * 0.1) / Math.sqrt(net), 2);
+      x.reach = seedSome(G, n, 'technosoc', Math.max(1, Math.round((1 + Math.floor(n.sig / 25)) / net)), (4 + n.sig * 0.1) / net, 2);
       let ab = 0, abN = 0;
       for (let p = 1; p < G.provinces.length; p++) { const Pr = G.provinces[p]; if (Pr.opp === 'technosoc' && Pr.owner && Pr.owner !== n.id && Pr.oppStr >= 30) { ab += Pr.oppStr / 100; abN++; } }
       x.abroad = ab; x.abN = abN;
       // a ripe country tips over
-      if (x.hub && n.sig >= 60 && G.tick % 90 < 30) for (const t of ID.alive(G)) {
+      if (x.hub && net <= 4 && n.sig >= 60 && G.tick % 90 < 30) for (const t of ID.alive(G)) {
         if (t === n || t.id === G.player || t.ideo === 'technosoc' || t.stab >= 40 || ID.Politics.inCivil(G, t)) continue;
         const mv = ID.Politics.movement(G, t);
         if (mv.ideo === 'technosoc' && mv.share >= 0.2 && G.rng.chance(0.25)) { ID.Politics.uprising(G, t, 'technosoc'); break; }
@@ -99,7 +100,7 @@
     extra: (n, G) => {
       const x = n.sigx || {}, recent = n.a.spreadAt != null && G.tick - n.a.spreadAt < 720;
       return [['The broadcast reaches', (x.reach || 0) + ' countries a month (one more for every 25 velocity, shared among ' + (x.net || 1) + ' network states)', (x.reach || 0) >= 2],
-        ['Hub of the network', x.hub ? 'yes: ripe countries can be tipped into revolution' : 'no: a larger techno-socialist state leads the network', !!x.hub],
+        ['Hub of the network', x.hub ? ((x.net || 1) <= 4 ? 'yes: ripe countries can be tipped into revolution' : 'yes, but a network of more than four states is too wide to tip new countries') : 'no: a larger techno-socialist state leads the network', !!x.hub && (x.net || 1) <= 4],
         ['The revolution is growing in', (x.abN || 0) + ' foreign provinces', (x.abN || 0) >= 10],
         ['Last revolution carried abroad', n.a.spreadAt != null ? date(n.a.spreadAt) + (recent ? ' (still feeding velocity)' : ' (too long ago)') : 'none yet', recent]];
     },
@@ -115,7 +116,7 @@
   /* ================================================================ NRX Accelerationism */
   D.nrx = {
     name: 'The Runaway Machine', gauge: 'Acceleration', init: 60,
-    desc: 'How fast capital is compounding. It falls every month unless industry grows, technology advances, research is funded and confidence holds; slumps, strikes and welfare brake it. High acceleration is the strongest industry and research in the game, a free factory every year and, above 80, an intelligence explosion that multiplies research. Low acceleration means collapse and capital flight.',
+    desc: 'How fast capital is compounding. Above 50 it dissolves tradition and the clergy’s hold. It falls every month unless industry grows, technology advances, research is funded and confidence holds; slumps, strikes and welfare brake it. High acceleration is the strongest industry and research in the game, a free factory every year and, above 80, an intelligence explosion that multiplies research. Low acceleration means collapse and capital flight.',
     drift: (n) => { const x = n.sigx || {}; return -2.4 + clamp((x.indG || 0) * 250, -3, 3) + (x.techGain || 0) * 4 + ((n.conf || 50) - 50) * 0.03 + (n.budget.science || 0) * 5 - (n.depression ? 1.5 : 0) - (n.strike ? 0.6 : 0) - ((n.budget.welfare || 0) > 0.06 ? 0.6 : 0) - (losing(n) ? 0.8 : 0); },
     fx: (n, v) => { const d = v - 50; return { prod: d * 0.005, sci: d * 0.008, eff: d * 0.002, conf: d * 0.1, legit: d * 0.08, unrest: Math.max(0, v - 55) * 0.05 + (v < 30 ? (30 - v) * 0.06 : 0) }; },
     low: 'Low acceleration: the shareholders are selling and the engineers are leaving.',
@@ -124,6 +125,7 @@
       { id: 'nx_zones', name: 'Charter zones', desc: 'Enclaves with their own law, their own courts and no taxes, leased to whoever bids highest.', cost: { auth: 10 }, cd: 48, sig: 10, fx: [['gold', 150], ['sup', 'capital', 6], ['mod', 'trade', 0.08, 60, 'Charter zones'], ['mod', 'unrest', 2, 60, 'Charter zones']], ai: (n, v) => v < 65 },
       { id: 'nx_labs', name: 'Unleash the laboratories', desc: 'Every restriction on research lifted, and a blank cheque for anyone who can make a machine think faster.', cost: { gold: 100 }, cd: 24, sig: 10, fx: [['tech', 250], ['mod', 'sci', 0.1, 24, 'Unleashed laboratories']], ai: (n, v) => v < 75 && n.gold > 200 },
       { id: 'nx_dissolve', name: 'Dissolve the last regulations', desc: 'The labour code, the factory inspectorate and the central bank’s rate committee, abolished in one board meeting.', cost: { auth: 20 }, cd: 60, sig: 14, fx: [['law', 'labor', 'banned'], ['sup', 'workers', -10], ['sup', 'capital', 10], ['conf', 10]], ai: (n, v) => v < 45 },
+      { id: 'nx_cathedral', name: 'Dismantle the Cathedral', desc: 'The old universities, the respectable newspapers and the civil service that think they govern by setting what may be said: their charters revoked, their endowments sold, their staff invited to compete for jobs in the private laboratories.', cost: { auth: 15 }, cd: 72, sig: 10, fx: [['sup', 'intelligentsia', -10], ['sup', 'bureaucracy', -8], ['mod', 'sci', -0.05, 24, 'The universities dissolved'], ['mod', 'coup', -0.2, 60, 'No one left to set the agenda'], ['law', 'press', 'regulated']], ai: (n, v) => v < 55 && n.fs.intelligentsia < 45 },
       { id: 'nx_exit', name: 'Free exit', desc: 'Anyone who dislikes the company may leave. Many do; the ones who stay stop complaining.', cost: { auth: 10 }, cd: 60, sig: 6, fx: [['pop', -0.02], ['mod', 'unrest', -5, 36, 'Free exit'], ['sup', 'workers', 4]], ai: (n) => (n.a.unrest || 0) > 30 },
     ],
     war: { name: 'Capital at war', desc: 'Superior machines: a stronger industry than the enemy’s tells, equipment comes back half again as fast, and barrages and air raids are cheaper, quicker and deadlier.', dp: { materiel: 1, equipRegen: 1.5, precision: 1 } },
@@ -143,6 +145,8 @@
       // capital builds itself
       if (n.sig >= 70) { x.build = (x.build || 0) + 1; if (x.build >= 12) { x.build = 0; ID.Events.applyFx(G, n, [['build', ID.B.FACTORY, 1]], {}); if (isP(G, n)) ID.news(G, 'Capital builds itself: a new factory rises without a single order from the board.', 'good', n.id); } }
       else x.build = 0;
+      // capital dissolves every tradition in its way
+      if (n.sig > 50) { n.tradition = Math.max(0, n.tradition - (n.sig - 50) * 0.01); n.fs.clergy = Math.max(0, n.fs.clergy - (n.sig - 50) * 0.004); }
       // capital flight, then the shareholders revolt
       if (n.sig < 25) { n.gold -= Math.max(0, n.gold) * 0.06; n.conf = Math.max(0, (n.conf || 50) - 2); }
       if (n.sig < 10 && (x.boardAt == null || G.tick - x.boardAt > 360) && G.rng.chance(0.3)) { x.boardAt = G.tick; ID.Events.queue(G, n, 'nx_board', {}); }
@@ -198,6 +202,7 @@
       { id: 'ns_ultimatum', name: 'An ultimatum', desc: 'Two provinces of the weakest neighbour that holds land we claim, by Saturday, or else. The weaker the neighbour and the more patient the world, the likelier it gives way; every success uses up the world’s patience faster.', cost: { auth: 15 }, cd: 12, sig: 3,
         can: (n) => ((n.sigx && n.sigx.appeaseOver) ? 'The world will not give way again.' : ''), fx: [['fn', (G, n) => ultimatum(G, n)], ['note', 'Demand provinces without a war']], ai: (n) => !n.nwars },
       { id: 'ns_knives', name: 'Purge the street army', desc: 'The party’s own militia has become a rival to the army. Its leaders are shot in one weekend, and the generals swear their oath to the Leader in gratitude.', cost: { auth: 20 }, cd: 600, sig: 4, fx: [['sup', 'military', 15], ['mod', 'coup', -0.4, 120, 'The army bound to the Leader'], ['grievance', 10], ['sup', 'workers', -4]], ai: (n) => n.coupRisk > 0.004 },
+      { id: 'ns_kdf', name: 'The people’s community', desc: 'Cheap radios, holiday cruises for factory workers, a car promised to every family and paid for in advance by stamps that will never buy one. Consent for the war that is coming.', cost: { gold: 60 }, cd: 36, sig: 2, fx: [['mod', 'ls', 2, 36, 'The people’s community'], ['sup', 'workers', 6], ['mod', 'unrest', -2, 36, 'The people’s community']], ai: (n) => n.fs.workers < 40 && n.gold > 150 },
       { id: 'ns_laws', name: 'Laws against the “enemy within”', desc: 'Citizens the regime declares enemies by birth are stripped of their rights, property and professions. Scientists, doctors and writers flee abroad; the world takes note, and so will history.', cost: { auth: 10 }, cd: 48, sig: 10,
         fx: [['sup', 'intelligentsia', -12], ['mod', 'sci', -0.1, PERM, 'Scientists driven abroad'], ['opAll', -8], ['grievance', 8], ['fn', (G, n) => { n.cnt.persecutions = (n.cnt.persecutions || 0) + 1; ID.chron(G, 'crime', 'The ' + n.adj + ' regime strips those it calls enemies of the nation of their rights, property and livelihoods.', n.id); }]], ai: (n, v) => v < 40 },
     ],

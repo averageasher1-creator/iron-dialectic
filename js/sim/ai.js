@@ -267,7 +267,7 @@
       if (t) Dp.startOp(G, n, 'fund', t);
     }
     if (n.ops.length && n.gold < 30) for (let k = n.ops.length - 1; k >= 0; k--) Dp.stopOp(G, n, k); // stopOp also frees a recruited figure
-    if (I.dip.export >= 0.2 && n.gold > 380 && n.ops.length < 3 && rng.chance(0.035)) {
+    if (I.dip.export >= 0.2 && !I.flags.broadcast && n.gold > 380 && n.ops.length < 3 && rng.chance(0.035)) { // a broadcasting revolution spreads by the signal, not by colonels
       const c = ns.filter((o) => o !== n && !ID.ideo(o).flags.noCoup && ID.op(G, n.id, o.id) < -25 && ID.ideo(o).family !== I.family && !o.civilOf && Dp.plotBest(G, n, o));
       const t = c.length ? rng.weighted(c, (o) => Math.max(1, 100 - o.stab + (o.id === G.player ? 10 * diffS.subvert : 0))) : null;
       if (t) Dp.startOp(G, n, 'coup', t);

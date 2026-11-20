@@ -898,8 +898,8 @@
     legit: { fervor: 0.5, prosperity: 0.2, victory: 0.15, competence: 0.15 },
     laws: { press: ['free', 'regulated'], security: ['police', 'liberties', 'secret'], land: ['collective', 'commune'], labor: ['control', 'company'], religion: ['secular', 'atheism'], trade: ['protect', 'free', 'autarky'] },
     lawDef: { press: 'free', security: 'police', land: 'collective', labor: 'control', religion: 'secular', trade: 'protect' },
-    dip: { export: 1.0, agg: 0.85, trade: 0.6, cb: ['liberate'] },
-    flags: { permRev: 1, liberator: 1, satellite: 1, sciBonus: 0.25 },
+    dip: { export: 0.6, agg: 0.85, trade: 0.6, cb: ['liberate'] },
+    flags: { permRev: 1, liberator: 1, satellite: 1, sciBonus: 0.25, broadcast: 1 },
     drift: [
       { to: 'trot', label: 'The slow revolution', why: 'The network goes quiet and the fervour fades: the movement settles for the old, patient internationalism.',
         pressure: (n) => b((n.sig || 50) < 30) * 0.5 + b(n.fervor < 35) * 0.3 - 0.45 },

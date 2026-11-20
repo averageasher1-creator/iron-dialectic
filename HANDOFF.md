@@ -867,6 +867,43 @@ pop-ups). Accelerationist systems get major advantages and punish being slow. `l
   extremist slogans in the banner; the theory texts describe these systems critically, and atrocity choices carry
   heavy costs and are recorded in the chronicle.
 
+## Session 14: carrying on, the doctrine audit, Tessaly and Meridia remade
+
+- **No forced ending** (`sim/game.js`, `ui/screens.js`). `G.won[type]` records each victory; `V.yearly` skips
+  what the player has already won. `Gm.canCarryOn` / `Gm.carryOn`: after a victory, the 1976 verdict
+  (`G.endless`), another power's domination (`G.ack['dom' + id]`), or a coup or revolution that leaves the
+  country alive (the player then leads the new regime through `changeIdeology`). The end screen shows
+  *Keep playing* / *Play on past 1976* / *Fight on anyway* / *Carry on under the new regime*. Saved.
+- **Doctrine audit** (theory against mechanics): Juche loses self-reliance as someone else's junior partner
+  and arms the whole people (mob); National Syndicalism's war order is now *Squads behind the lines* (a
+  nationalist movement does not call international strikes; key `nsy_squads`); technosoc velocity is fed by
+  new technology too and pays an automation dividend in living standards; NRX erodes tradition and the
+  clergy above 50 and gains *Dismantle the Cathedral*; National Socialism gains *The people's community*.
+- **Tessaly and Meridia** (`js/data/campaign13.js`, loaded last): replaces their scenario entry (ideology,
+  situation, blurb), `ID.IDENTITY`, `ID.NATIONAL` (leader, cast, national question with `tick`), the whole
+  national tree (`ID.FOCUS.nations`, projects emptied; destinies tamed as in destiny.js), and their story
+  chapters (`st_te_strike` and `st_me_election` removed; `st_tn_cassine` 1912, `st_tn_verano` 1917,
+  `st_tn_memo` 1928, `st_tn_race` / `st_mx_race` 1947, `st_mx_vote` 1919, `st_mx_antara` 1931, `st_mx_crash`
+  1953). Tessaly's tree: the signal (Verano federation or absorption, the broadcast to Cassine, Karsova's
+  offer or denunciation, the Network International, Vess), the machines (white coal, watchmakers, accelerate
+  or the fifteen-hour week, the engine under the mountain, publish or keep it), the cantons (the wire or the
+  valleys, Signal Security, purge or *Consolidate* into Juche, councils on the wire), the militia (lightning
+  revolution or the alpine redoubt); destinies Planetary Signal, Automated Commonwealth, Alpine Fortress,
+  Federation of Free Signals. Meridia's tree: the company (shares or exit, dismantle or buy the Cathedral,
+  formalism or the founder's golden share, charter cities, the executive's court), the curve (grid,
+  Polytechnic, foundries, Sunstone, difference engines, orbit, buy Tessaly's engineers or jam its signal), the
+  markets (Cassine listing or Hesperian contracts, Antara's copper concession or the officers' account, the
+  Old Lands, a leased bay), security; destinies Singularity, Patchwork, Crowned Company. The secret road of the
+  Model now opens to an NRX Meridia at acceleration 82 (or an engineers' Meridia at 70). Cassine's League now
+  allies Norvik instead of Tessaly; its arsenal aid goes to Kelda.
+- **Spread of techno-socialism** after the campaign tests (in one early version 20+ states went techno-socialist):
+  the broadcast's reach and strength are divided by the number of network states, only the hub tips countries
+  and only while the network has four states or fewer, `dip.export` 0.6, and the AI does not back coups for a
+  broadcasting ideology (`flags.broadcast`; the player still may). Six historical and six free campaigns
+  afterwards: Tessaly usually survives to the late 1940s or 50s, ends anywhere from the Planetary Commune to
+  the Alpine Fortress, and in one run in three its revolution spreads to a dozen states; Meridia survives in
+  all, ending as the Continuum, the Patchwork, the Crowned Company, a junta or a social democracy.
+
 ## Published (end of session 2)
 
 - Playable artifact: slug `b44285db-2e8b-4266-bfe0-39315542a8b3` (https://claude.ai/artifact/PG38qVqd6iMyayLf4gaVKx), live version `1794778445-ed93` after the session 9 review fixes,

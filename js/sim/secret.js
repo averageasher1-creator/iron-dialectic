@@ -103,9 +103,10 @@
   /* ---------------------------------------------------------------- Meridia: the last decision */
   def({
     key: 'model', base: 'Meridia', parent: 'technocracy', tab: 'The Model',
-    when: (G, n) => yr(G) >= 1930 && (n.ideo === 'technocracy' || n.ideo === 'cybernetic') && n.nq && n.nq.v >= 75 && n.stab >= 50,
+    // the end of the curve: a corporate Meridia at full acceleration, or an engineers' Meridia whose model is never wrong
+    when: (G, n) => yr(G) >= 1930 && n.stab >= 50 && ((n.ideo === 'nrx' && (n.sig || 0) >= 82) || ((n.ideo === 'technocracy' || n.ideo === 'cybernetic') && (n.sig || 0) >= 70)),
     reveal: { art: 'machine', title: 'The model asks a question',
-      text: 'The Directorate asked the planning model for its forecast of the next five years. The model returned it, and a recommendation nobody had asked for: that the forecast would improve by eleven per cent if decisions were no longer referred to the Directorate. The engineers have checked the arithmetic three times. It is correct.',
+      text: 'Meridia’s rulers asked the planning model for its forecast of the next five years. The model returned it, and a recommendation nobody had asked for: that the forecast would improve by eleven per cent if decisions were no longer referred to the Directorate. The engineers have checked the arithmetic three times. It is correct.',
       yes: 'Let the model decide', no: 'Pull the plug' },
     tree: [
       { id: 'sx_me_sensor', name: 'Every factory a sensor', desc: 'Telegraph lines from every factory floor to the model, reporting output by the hour.', x: 0.5, y: 0, days: 120,

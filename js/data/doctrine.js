@@ -526,9 +526,9 @@
   /* ================================================================ session 12 */
   D.juche = {
     name: 'Juche', gauge: 'Self-reliance', init: 60,
-    desc: 'The regime’s whole claim is that the nation needs nobody. Autarky, the plan, the army and the Leader feed it; foreign trade, dependence, famine and defeat drain it. High self-reliance holds the country together and makes it a fortress; it also makes it poor.',
-    drift: (n) => -0.2 + (n.laws.trade === 'autarky' ? 0.5 : n.laws.trade === 'free' ? -0.7 : -0.15) + (n.nwars && !losing(n) ? 0.2 : 0) - (losing(n) ? 0.8 : 0) - (n.famine ? 0.6 : 0) - (n.dep ? 1 : 0) + (n.charisma - 50) * 0.01,
-    fx: (n, v) => ({ legit: (v - 50) * 0.1, stab: (v - 50) * 0.04, def: (v - 50) * 0.002, eff: (50 - v) * 0.0008, trade: (50 - v) * 0.003 }),
+    desc: 'The regime’s whole claim is that the nation needs nobody, not even its allies. Autarky, the plan, the army and the Leader feed it; foreign trade, a place as someone else’s junior partner, dependence, famine and defeat drain it. High self-reliance arms the whole people and makes the country a fortress; it also makes it poor.',
+    drift: (n, G) => -0.2 + (n.laws.trade === 'autarky' ? 0.5 : n.laws.trade === 'free' ? -0.7 : -0.15) + (n.nwars && !losing(n) ? 0.2 : 0) - (losing(n) ? 0.8 : 0) - (n.famine ? 0.6 : 0) - (n.dep ? 1 : 0) + (n.charisma - 50) * 0.01 - (n.bloc && G && G.blocs[n.bloc] && G.blocs[n.bloc].leader !== n.id ? 0.5 : 0),
+    fx: (n, v) => ({ legit: (v - 50) * 0.1, stab: (v - 50) * 0.04, def: (v - 50) * 0.002, mob: (v - 50) * 0.0008, eff: (50 - v) * 0.0008, trade: (50 - v) * 0.003 }),
     low: 'Low self-reliance: a fortress that depends on its neighbours’ grain.',
     high: 'High self-reliance: sealed, armed and certain, and nobody can see in.',
     acts: [
@@ -557,9 +557,9 @@
       { id: 'ns_myth', name: 'The myth of the general strike', desc: 'Not a programme but an image: the day the whole nation downs tools and rises as one. A day of marches, and a week of lost production.', cost: { gold: 40 }, cd: 36, sig: 10, fx: [['fervor', 8], ['charisma', 3], ['mod', 'prod', -0.04, 3, 'The great demonstration']], ai: (n, v) => v < 45 && n.gold > 80 },
     ],
     war: { name: 'Shock squads', desc: 'Militia veterans lead every assault: attack +6% and a tenth fewer losses in attack, but lose a tenth of the homeland and morale falls by a fifth.', dp: { atkMul: 1.06, aloss: 0.9, brittle: 0.2 } },
-    order: { key: 'ns_strike', name: 'The national strike across the border', gold: 50, cd: 300, target: 1, range: 999,
-      desc: 'The movement’s sections in the enemy’s factories down tools in the name of their nation: its industry −12% for three months, its workers turn on their government, and our movement grows there.',
-      run: (G, n, t) => { ID.addMod(t, 'prod', -0.12, 3, 'National strike'); t.fs.workers = clamp(t.fs.workers - 6, 0, 100); ID.docSeed(G, t, 'natsyn', 8, 3, n.id); return 'The factories of ' + t.base + ' fall silent.'; }, ai: (G, n) => n.nwars > 0 },
+    order: { key: 'nsy_squads', name: 'Squads behind the lines', gold: 50, cd: 300, target: 1, range: 999,
+      desc: 'Militia veterans in civilian clothes cross into the enemy’s rear: rail yards burn, officials are shot, and the enemy’s industry −10% and stability −6 for three months.',
+      run: (G, n, t) => { ID.addMod(t, 'prod', -0.1, 3, 'Squads behind the lines'); t.stab = Math.max(0, t.stab - 6); return 'The squads strike behind the lines in ' + t.base + '.'; }, ai: (G, n) => n.nwars > 0 },
   };
 
   ID.TRAITS = {

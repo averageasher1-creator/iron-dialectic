@@ -295,7 +295,9 @@
     const o = G.over, n = G.nations[o.nation || G.player], C = ID.Game.chronicle(G);
     const stat = (v, l) => '<div><b>' + v + '</b><span>' + l + '</span></div>';
     const big = '<div class="bigstats">' + stat(C.years, 'years') + stat(Math.round((C.peak / G.landCount) * 100) + '%', 'largest share of the world') + stat(C.wars, 'wars in the world') + stat(C.revolutions + C.civilWars, 'revolutions, coups and civil wars') + '</div>';
-    const foot = '<div class="row" style="margin-top:14px">' + btn('Try again as a different system', 'retry', null, { cls: 'big red' }) + btn('Read the chronicle', 'chronicle', null, { cls: 'big' }) + '<span class="sp"></span>' + btn('Title screen', 'toTitle', null, { cls: 'ghost' }) + '</div>';
+    const carry = ID.Game.canCarryOn(G), carryLbl = o.result === 'victory' ? 'Keep playing' : o.result === 'defeat' ? (o.type === 'eclipsed' ? 'Fight on anyway' : 'Carry on under the new regime') : 'Play on past ' + o.year;
+    const carryTip = o.result === 'victory' ? 'The victory is recorded. Nothing ends: play on for as long as you like and reach for another goal.' : o.type === 'eclipsed' ? 'Another power has won the century. You may still refuse to accept it.' : o.result === 'defeat' ? 'You lose the old regime but keep the country: you now lead the new government, with its rules.' : 'The verdict is recorded. The world goes on.';
+    const foot = '<div class="row" style="margin-top:14px">' + (carry ? btn(carryLbl, 'keepPlaying', null, { cls: 'big red', tip: carryTip }) : '') + btn('Try again as a different system', 'retry', null, { cls: carry ? 'big' : 'big red' }) + btn('Read the chronicle', 'chronicle', null, { cls: 'big' }) + '<span class="sp"></span>' + btn('Title screen', 'toTitle', null, { cls: 'ghost' }) + '</div>';
     let h;
     if (o.result === 'defeat') {
       const pm = o.pm;
@@ -311,7 +313,7 @@
       const sec = o.result === 'victory' && o.type === 'objective' && ID.ideo(n).secret;
       const k = sec ? 'A SECRET ENDING' : o.result === 'victory' ? 'VICTORY' : 'THE CENTURY CLOSES';
       const text = o.result === 'victory'
-        ? (sec ? ID.ideo(n).ending : o.type === 'objective' ? ID.ideo(n).objective.desc + ' It is done.' : o.type === 'verdict' ? 'Sixty-six years on, no state stands higher than ' + n.name + '.' : 'By ' + o.year + ', ' + n.name + ' has achieved what no rival could stop.')
+        ? (sec ? ID.ideo(n).ending : o.type === 'objective' ? ID.ideo(n).objective.desc + ' It is done. The world does not stop here: you may keep playing.' : o.type === 'verdict' ? 'Sixty-six years on, no state stands higher than ' + n.name + '.' : 'By ' + o.year + ', ' + n.name + ' has achieved what no rival could stop.')
         : n.name + ' endures to ' + o.year + ', ranked #' + (o.info && o.info.rank) + ' among the surviving states. Others will write this century’s history.';
       h = '<div class="dlg xwide"><div class="dhd"><div class="k">' + k + '</div><div class="d">' + ID.dateOf(G.tick).str + '</div></div><div class="dbd"><h2>' + esc(title) + '</h2><p class="tx">' + esc(text) + '</p>' +
         '<p class="lead">' + esc(n.name) + ' began as ' + esc(C.fate.started) + (C.fate.changed ? ' and ended as ' + esc(C.fate.name) : ' and kept its system to the end') + '. At the close ' + C.fate.n + ' state' + (C.fate.n === 1 ? '' : 's') + ' and ' + Math.round(C.fate.share * 100) + '% of humanity lived under ' + esc(C.fate.name) + '.</p>' + big +
@@ -331,4 +333,10 @@
       '<div class="row" style="margin-top:12px">' + btn('Back', 'endAgain', null, { cls: 'red' }) + '</div></div></div>', 'end');
   };
   acts.endAgain = () => { if (UI.G && UI.G.over) Sc.end(UI.G); };
+  acts.keepPlaying = () => {
+    const G = UI.G; if (!G || !ID.Game.carryOn(G)) return;
+    UI.overShown = false; UI.closeModal(); G.dirtyAll = true; G.uiDirty = true;
+    UI.toast('The campaign goes on. Press Space when you are ready.', true);
+    Sc.autosave(G);
+  };
 })();
