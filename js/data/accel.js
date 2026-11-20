@@ -180,7 +180,8 @@
     const t = C[0];
     // demand two provinces at a time, not the whole claim
     const ask = n.claims.filter((p) => G.provinces[p].owner === t.id).slice(0, 2), rest = n.claims.filter((p) => ask.indexOf(p) < 0);
-    if (t.id === G.player && !G.autoPlayer) { x.patience -= 10; n.claims = ask; Dp().note(G, n, t, 'cede'); n.claims = rest.concat(n.claims); return; }
+    // the player answers later, from whatever is claimed then: drop every claim on them but the two demanded
+    if (t.id === G.player && !G.autoPlayer) { x.patience -= 10; n.claims = rest.filter((p) => G.provinces[p].owner !== t.id).concat(ask); Dp().note(G, n, t, 'cede'); return; }
     const r = Dp().power(n) / Math.max(1, Dp().power(t));
     const odds = clamp(0.15 + (x.patience / 100) * 0.5 + (r - 1) * 0.12 - (t.bloc ? 0.15 : 0) - (ID.ideo(t).family === 'socialist' ? 0.1 : 0), 0.05, 0.9);
     const yes = G.rng.chance(odds);

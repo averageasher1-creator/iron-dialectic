@@ -78,7 +78,7 @@
     for (const n of ID.alive(G)) {
       const pr = V.progress(G, n); let won = null;
       for (const v of pr) {
-        if (n.id === G.player && G.won && G.won[v.id]) continue; // already achieved: the campaign carries on
+        if (n.id === G.player && G.won && G.won[Gm.winKey(n, v.id)]) continue; // already achieved: the campaign carries on
         let ok = v.p >= 0.999;
         if (v.id === 'objective') ok = v.parts.every((x) => x[1] >= x[2]);
         if (v.id === 'ideological') ok = v.parts.every((x) => x[1] >= x[2]);
@@ -147,10 +147,12 @@
     G.over = { result: 'defeat', type, info: info || {}, pm, year: ID.yearOf(G.tick), nation: n.id };
     ID.sfx(G, 'defeat');
   };
+  /* a grand objective belongs to an ideology: winning one does not forbid winning another system's later */
+  Gm.winKey = (n, type) => (type === 'objective' ? 'objective:' + n.ideo : type);
   Gm.victory = function (G, type, name) {
     if (G.over) return;
     const n = G.nations[G.player];
-    (G.won = G.won || {})[type] = ID.yearOf(G.tick);
+    (G.won = G.won || {})[Gm.winKey(n, type)] = ID.yearOf(G.tick);
     ID.chron(G, 'end', n.name + ' achieves ' + name + '.', n.id);
     G.over = { result: 'victory', type, name, year: ID.yearOf(G.tick), nation: n.id };
     ID.sfx(G, 'victory');
