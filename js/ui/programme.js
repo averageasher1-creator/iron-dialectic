@@ -45,9 +45,10 @@
     if (em.length) h += sec('Emergency measures', '<p class="dim" style="font-size:13.5px;margin:0 0 8px">Short measures for the trouble you are in. Starting one shelves the programme under way; its progress is kept.</p>' + em.map((f) => '<div class="dec em"><h4>' + esc(NM(f, n)) + '</h4><p>' + esc(DS(f, n)) + '</p><div class="cost">' + F.days(G, n, f) + ' days' +
       ' <span style="display:inline-flex;flex-wrap:wrap;gap:0 10px;font-weight:600">' + UI.fxHtml(f.fx, n) + '</span></div>' +
       btn(cur && !cur.crisis ? 'Shelve and start' : 'Start', 'startFocus', f.id, { cls: 'sm red', off: emOff, tip: focusTip(G, n, f) + (cur && !cur.crisis ? '<hr>' + esc(NM(cur, n)) + ' is shelved, with its progress kept, until this is done.' : '') }) + '</div>').join(''), em.length + ' open');
-    h += sec('Can start now', av.length ? av.map((f) => '<div class="dec' + (f.dest ? ' dest' : '') + '"><h4>' + esc(NM(f, n)) + histTag(G, f) + destTag(f) + '</h4><p>' + esc(DS(f, n)) + '</p><div class="cost">' + F.days(G, n, f) + ' days' + (f.tree === 'general' ? ' · general' : '') +
+    const where = (f) => { const t = treeOf(n, f.id); return t ? t.name : ''; };
+    h += sec('Can start now', av.length ? av.map((f) => '<div class="dec' + (f.dest ? ' dest' : '') + '"><h4>' + esc(NM(f, n)) + histTag(G, f) + destTag(f) + '</h4><p>' + esc(DS(f, n)) + '</p><div class="cost">' + F.days(G, n, f) + ' days · ' + esc(where(f)) +
       ' <span style="display:inline-flex;flex-wrap:wrap;gap:0 10px;font-weight:600">' + UI.fxHtml(f.fx, n) + '</span></div>' +
-      btn('Start', 'startFocus', f.id, { cls: 'sm', off: cur ? 'Another programme is under way. Abandon it first.' : '', tip: focusTip(G, n, f) }) + '</div>').join('')
+      '<div class="decb">' + btn('Start', 'startFocus', f.id, { cls: 'sm', off: cur ? 'Another programme is under way. Abandon it first.' : '', tip: focusTip(G, n, f) }) + btn('Show in tree', 'showInTree', f.id, { cls: 'sm ghost', tip: 'Open the ' + esc(where(f)) + ' tree at this programme.' }) + '</div></div>').join('')
       : '<p class="dim">Nothing is open right now. Later years and finished programmes unlock more.</p>', av.length ? av.length + '' : '');
     if (G.historical) {
       const up = ID.Story.upcoming(G, 6);
@@ -96,7 +97,7 @@
       const pr = st === 'cur' ? F.progress(G, n) : 0;
       const canStart = st === 'avail' && (!cur || (f.crisis && !cur.crisis));
       const meta = f.dest && st !== 'cur' ? (st === 'done' ? '★ ' : '→ ') + ID.Focus.sub(f.dest.name, n) : st === 'done' ? 'done ' + ID.dateOf(n.path.done[f.id]).short : st === 'cur' ? Math.round(pr * 100) + '%' : st === 'excl' ? 'ruled out' : (f.year && ID.yearOf(G.tick) < f.year ? 'from ' + f.year : F.days(G, n, f) + ' days');
-      nodes += '<button class="fn ' + st + (isHist(G, f) ? ' h' : '') + (f.dest ? ' dest' : '') + (canStart ? ' go' : '') + '" style="left:' + x + 'px;top:' + y + 'px;width:' + NW + 'px;height:' + NH + 'px"' +
+      nodes += '<button data-fid="' + f.id + '" class="fn ' + st + (isHist(G, f) ? ' h' : '') + (f.dest ? ' dest' : '') + (canStart ? ' go' : '') + '" style="left:' + x + 'px;top:' + y + 'px;width:' + NW + 'px;height:' + NH + 'px"' +
         (canStart ? ' data-act="startFocus" data-a=\'"' + f.id + '"\'' : '') + tip(focusTip(G, n, f) + (canStart ? '<hr><b>Click to start.</b>' + (cur ? ' ' + esc(NM(cur, n)) + ' is shelved until it is done.' : '') : st === 'avail' && cur ? '<hr><span class="dim">Another programme is under way.</span>' : '')) + '>' +
         '<b>' + esc(NM(f, n)) + '</b><small>' + esc(meta) + '</small>' + (st === 'cur' ? '<i class="pg" style="width:' + (pr * 100).toFixed(1) + '%"></i>' : '') + '</button>';
     }
@@ -106,11 +107,31 @@
       '<div class="dbd"><div class="row nw" style="margin-bottom:10px"><div class="seg" style="flex:none">' + tabs + '</div><span class="sp"></span>' + legend + '</div>' +
       (T.key === 'cri' ? '<div class="note">Emergency measures open only when the trouble they answer is upon you, and can be taken again after a few years. Starting one shelves the programme under way, progress kept, until the measure is done.</div>' :
       cur ? '<div class="note">Under way: <b>' + esc(NM(cur, n)) + '</b>, completes ' + ID.dateOf(n.path.end).short + '. One programme runs at a time.</div>' : '<div class="note red">No programme under way. Click an open programme to start it.</div>') +
-      '<div class="tscroll"><div class="tcanvas" style="width:' + W + 'px;height:' + H + 'px"><svg width="' + W + '" height="' + H + '">' + svg + '</svg>' + nodes + '</div></div></div></div>';
+      '<div class="twrap"><div class="tscroll"><div class="tcanvas" style="width:' + W + 'px;height:' + H + 'px"><svg width="' + W + '" height="' + H + '">' + svg + '</svg>' + nodes + '</div></div><span class="tmore l">← more</span><span class="tmore r">more →</span></div></div></div>';
   }
   UI.treeKey = 'nat';
-  UI.renderTree = function () { const G = UI.G; if (!G || UI.modalKind !== 'tree') return; const sc = document.querySelector('#modal .tscroll'); const l = sc ? sc.scrollLeft : 0, t = sc ? sc.scrollTop : 0; UI.modal(treeHtml(G, P(), UI.treeKey), 'tree'); const s2 = document.querySelector('#modal .tscroll'); if (s2) { s2.scrollLeft = l; s2.scrollTop = t; } UI.retip(); };
-  acts.tree = (a) => { UI.treeKey = a || UI.treeKey; const G = UI.G; UI.modal(treeHtml(G, P(), UI.treeKey), 'tree'); UI.retip(); ID.Audio.play('click'); };
+  const treeOf = (n, id) => { for (const t of Fo().trees(n)) if (t.list.some((f) => f.id === id)) return t; return null; };
+  /* show or hide the "more" markers as the tree scrolls */
+  function edges() {
+    const sc = document.querySelector('#modal .tscroll'), w = sc && sc.parentNode; if (!sc) return;
+    w.classList.toggle('more-l', sc.scrollLeft > 8); w.classList.toggle('more-r', sc.scrollLeft + sc.clientWidth < sc.scrollWidth - 8);
+    if (!sc.dataset.ed) { sc.dataset.ed = 1; sc.addEventListener('scroll', edges, { passive: true }); }
+  }
+  /* centre a programme (or, with no id, the one under way or the first that can be started) in the tree view */
+  function reveal(id, flash) {
+    const sc = document.querySelector('#modal .tscroll'); if (!sc) return;
+    const el = id ? sc.querySelector('[data-fid="' + id + '"]') : sc.querySelector('.fn.cur') || sc.querySelector('.fn.go') || sc.querySelector('.fn.avail');
+    if (el) {
+      const inView = el.offsetLeft >= sc.scrollLeft && el.offsetLeft + el.offsetWidth <= sc.scrollLeft + sc.clientWidth && el.offsetTop >= sc.scrollTop && el.offsetTop + el.offsetHeight <= sc.scrollTop + sc.clientHeight;
+      if (id || !inView) { sc.scrollLeft = Math.max(0, el.offsetLeft - (sc.clientWidth - el.offsetWidth) / 2); sc.scrollTop = Math.max(0, el.offsetTop - (sc.clientHeight - el.offsetHeight) / 2); }
+      if (flash) { el.classList.add('flash'); setTimeout(() => el.classList.remove('flash'), 1800); }
+    }
+    edges();
+  }
+  UI.renderTree = function () { const G = UI.G; if (!G || UI.modalKind !== 'tree') return; const sc = document.querySelector('#modal .tscroll'); const l = sc ? sc.scrollLeft : 0, t = sc ? sc.scrollTop : 0; UI.modal(treeHtml(G, P(), UI.treeKey), 'tree'); const s2 = document.querySelector('#modal .tscroll'); if (s2) { s2.scrollLeft = l; s2.scrollTop = t; } edges(); UI.retip(); };
+  acts.tree = (a) => { UI.treeKey = a || UI.treeKey; const G = UI.G; UI.modal(treeHtml(G, P(), UI.treeKey), 'tree'); reveal(null); UI.retip(); ID.Audio.play('click'); };
+  /* from the list of open programmes: open the right tree at the right place */
+  acts.showInTree = (id) => { const n = P(), T = treeOf(n, id); if (!T) return; UI.treeKey = T.key; UI.modal(treeHtml(UI.G, n, T.key), 'tree'); reveal(id, true); UI.retip(); ID.Audio.play('click'); };
   acts.startFocus = (a) => {
     const G = UI.G, n = P(); const why = ID.Focus.start(G, n, a);
     if (why) { UI.toast(why); return; }

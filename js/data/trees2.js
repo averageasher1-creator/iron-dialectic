@@ -306,4 +306,11 @@
     else f.fx.push(['circleLoy', 3]);
   }
   ID.FOCUS.flatUpgraded = flat;
+
+  /* Programmes added by the later layers that took a name already used in the same tree (often a destiny's),
+     which made players think they were done. Each gets a name of its own. */
+  const RENAME = { ca_xr: 'The postwar order', ca_xcb: 'The society of plenty', no_p_people: 'A kingdom for the people', dr_p_greater: 'The lost provinces regained',
+    ka_p_nep: 'The market in the villages', ru_fever: 'Cool heads', ru_p_greater: 'The map on every wall', su_xca: 'Masters of the river',
+    pv_f_protect: 'Under the Hesperian wing', an_f_nation: 'Nationalise without compensation' };
+  for (const base in ID.FOCUS.nations) for (const f of ID.FOCUS.nations[base].concat((ID.FOCUS.projects || {})[base] || [])) if (RENAME[f.id]) f.name = RENAME[f.id];
 })();
