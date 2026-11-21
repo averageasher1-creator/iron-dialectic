@@ -649,6 +649,9 @@ actions, programmes, the Opposition map mode and the save format; see the plan i
   to ~68% in 1914–16, rebuilt after). `E.monthsLeft(n)`. AI adds 8% arms when an arsenal will run dry within a year,
   and restocks after a war. Council congresses keep arms motions they passed (`n.a.mot`); budget changes and motions
   show the new target at once (`E.kitNow`); countries start at the kit they can keep.
+  **Player forgiveness** (players found kit confusing and always ran dry at war): the player's war burn, fallen kit
+  and shells × `E.ARS.player` 0.4 (`E.drainK`), its refill × `E.ARS.playerIn` 1.5; AI unchanged. Hands-off player,
+  historical, 4 runs: median kit at war 67% → 110%, war months under 75% kit 77% → 0%. Check in `tools/structures.js`.
 - **Trade**: one route per treaty in `n.a.routes` (`{o, base, fit, border, oPort, port, reach, sea, v}`). Value =
   (0.8 + `E.ROUTE_K` 0.04 × the smaller output) × reach × fit × law. Neighbours full reach; others through a working
   port at each end, `E.PORT_ROUTES` = 3 per port at full value, the rest overland at `E.OVERLAND` 35% (the old flat

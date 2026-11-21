@@ -602,7 +602,7 @@
     const why = C.abilBlock(G, n, key, tile); if (why) return why;
     const ab = C.ABIL[key];
     n.gold -= C.abilGold(n, ab); n.cd['ab_' + key] = G.tick + C.abilCd(n, ab);
-    if (!ab.self && n.ars != null) { const sh = ab.gold * ID.Economy.ARS.shells; n.ars = Math.max(0, n.ars - sh); n.a.shells = (n.a.shells || 0) + sh; } // shells and bombs come out of the arsenal
+    if (!ab.self && n.ars != null) { const sh = ab.gold * ID.Economy.ARS.shells * ID.Economy.drainK(G, n); n.ars = Math.max(0, n.ars - sh); n.a.shells = (n.a.shells || 0) + sh; } // shells and bombs come out of the arsenal
     if (ab.doctrine) {
       const Dn = ab.self ? null : G.nations[G.owner[tile]];
       const msg = ab.run(G, n, Dn, tile) || '';

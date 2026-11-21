@@ -79,6 +79,9 @@ ok(n.a.armsMade <= n.a.armsCap + 1e-9 && near(n.a.armsCap, (n.a.ic || 0) * ID.Ec
   const v = al.find((o) => o !== n && ID.atWar(G, n.id, o.id)), vf = G.blist.find((i) => G.owner[i] === v.id && (G.bld[i] === B.FACTORY || G.bld[i] === B.CITY));
   v.ars = 1000; const mine = n.ars; ID.setOwner(G, vf, n.id);
   ok(v.ars < 1000 && n.ars > mine, 'taking an enemy factory or city captures part of their arsenal (' + Math.round(n.ars - mine) + ')');
+  const bP = E.warBurn(G, n, 10), bA = E.warBurn(G, v, 10) * (E.POSTURE_BURN[n.posture] || 1) / (E.POSTURE_BURN[v.posture] || 1);
+  const rP = E.kitTarget(G, n, 50, []) && n.a.refill; n.id = '_'; const rA = E.kitTarget(G, n, 50, []) && n.a.refill; n.id = G.player; E.kitNow(G, n);
+  ok(n.nwars && v.nwars && near(bP, bA * E.ARS.player) && near(rP, rA * E.ARS.playerIn), 'the player burns kit at ×' + E.ARS.player + ' and refills at ×' + E.ARS.playerIn + ' of an AI');
 }
 
 /* the atomic programme */
