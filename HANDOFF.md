@@ -92,7 +92,8 @@ exists in the sandbox for headless browser checks (use puppeteer-core from npm o
   - events/decisions: `ID.Events.choose(G, k)`, `.options`, `.describe`, `.txt`,
     `.decisionsFor`, `.decisionBlock`, `.runDecision`, `.embrace`, `.embraceBlock`
   - covert: `ID.Diplomacy.startOp(G, n, 'fund'|'coup'|'strike', target)`, `.stopOp`, `.opCost`
-  - victory: `ID.Victory.progress(G, n)`; end screens: `G.over`, `ID.Game.chronicle(G)`
+  - victory: `ID.Victory.progress(G, n)`; end screens: `G.over`, `ID.Game.chronicle(G)`. Victory does not end the
+    game: `ID.Game.canCarryOn(G)` / `ID.Game.carryOn(G)` clear `G.over` (see Session 14); `G.won` records wins.
   - saves: `ID.Game.save(G)` → JSON string, `ID.Game.load(str)` → `G`
 - Events and decisions are data. Effects are arrays like `['sup','workers',10]`; the
   vocabulary is in `ID.Events.applyFx` and `ID.Events.describe` (`sim/events.js`).

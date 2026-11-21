@@ -270,6 +270,11 @@ under your ideological family with you as its largest state (Ideological); 35% o
 plus trade treaties with most of the world for five years (Hegemony); or your ideology's grand
 objective. If nobody has won by 1976, history delivers a verdict by score.
 
+**Nothing forces the campaign to end while your state stands.** A victory is recorded (per ideology for grand
+objectives) and the end screen offers *Keep playing*; the same choice follows the 1976 verdict (*Play on past
+1976*), another power's domination (*Fight on anyway*), and a coup or revolution that leaves the country alive
+(*Carry on under the new regime*). Only conquest, a lost civil war or disintegration end a campaign outright.
+
 ## 7. Art direction
 
 **Constructivist war room.** Three inks on newsprint: ink black `#14110f`, paper `#e9dfc8`,
