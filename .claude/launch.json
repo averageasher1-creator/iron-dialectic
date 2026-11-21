@@ -1,0 +1,6 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    { "name": "game", "runtimeExecutable": "node", "runtimeArgs": ["C:/Users/asher/AppData/Local/Temp/claude/534bf39f6ae368c0/18b6c6c9-8c11-4a16-b0ef-acc642c42df7/scratchpad/serve.js", "C:/Users/asher/iron-dialetic", "8781"], "port": 8781 }
+  ]
+}
