@@ -751,7 +751,8 @@
   C.tickPop = function (G, n) {
     const cap = ID.popCap(n);
     if (n.pop < 1) n.pop = 1;
-    const g = 0.00015 * (0.55 + n.ls / 110) * (n.famine ? 0 : 1) * (1 + ID.mod(n, 'growth'));
+    const h = n.a.harvest == null ? 2 : n.a.harvest; // people stop multiplying as the harvest nears what they eat
+    const g = 0.00015 * (0.55 + n.ls / 110) * Math.max(0, Math.min(1, (h - ID.Economy.GROW_AT) * 20)) * (1 + ID.mod(n, 'growth'));
     if (n.pop < cap) n.pop += n.pop * g * (1 - n.pop / cap); else n.pop -= (n.pop - cap) * 0.006;
     const r = ID.RECRUIT[n.laws.recruit];
     if (n.troops > n.pop * 0.6) n.troops = n.pop * 0.6;

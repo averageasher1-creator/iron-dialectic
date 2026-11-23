@@ -115,7 +115,8 @@
     if (n.debt > 1) rows.push(['Debt', '<span class="' + (n.debt > E.debtCap(n) * 0.75 ? 'bad' : 'warn') + '">' + Math.round(n.debt) + ' / ' + Math.round(E.debtCap(n)) + '</span>', 'Interest is 0.6% a month. Past the limit you must default, squeeze or print.']);
     if (n.inflation > 1) rows.push(['Inflation', '<span class="' + (n.inflation > 40 ? 'bad' : 'warn') + '">' + Math.round(n.inflation) + '</span>', 'Eats living standards. Over 60 is hyperinflation.']);
     rows.push(['Living standards', '<span class="' + (n.ls < 38 ? 'bad' : n.ls > 65 ? 'good' : '') + '">' + Math.round(n.ls) + '</span>', 'Output per head against the world, plus welfare, minus famine, inflation and war.']);
-    rows.push(['Food', '<span class="' + (n.foodBal < 0.93 ? 'bad' : n.foodBal < 1 ? 'warn' : '') + '">' + Math.round(n.foodBal * 100) + '% of need</span>']);
+    const hvp = ID.Economy.harvest(n);
+    rows.push(['Food', '<span class="' + (n.famine ? 'bad' : hvp < 1 ? 'warn' : '') + '">harvest ' + Math.round(hvp * 100) + '% of need</span>, ' + (n.grain || 0).toFixed(1) + ' months in the granaries', 'A surplus fills the granaries, a shortfall empties them; famine only when they are empty.']);
     rows.push(['Industrial capacity', Math.round(n.a.ic || 0) + '', '<h5>Industrial capacity</h5>What your factories can make: factories by condition × 12 × (1 + 0.1 × industrial technology ' + n.tech.ind + ') × ore ' + (n.a.oreF || 1).toFixed(2) + '.<hr>It is most of your industrial output, and the ceiling on arms: ' + (E.armsCap(n)).toFixed(1) + ' gold of kit a month' + (e.model === 'plan' || e.model === 'cyber' ? ' (a planned economy turns 20% more of it to arms)' : '') + '. Bombing and capture cut it until the factories are repaired.']);
     h += sec('Accounts', kv(rows));
     h += sec('Trade', tradeCard(G, n), Math.round(n.tradeInc) + ' a month');

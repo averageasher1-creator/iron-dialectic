@@ -49,6 +49,11 @@
      month; war burns it: about a month of the army's needs per month of active fighting (× posture), and the kit of every
      soldier lost. Kit = 62% + 38% × arsenal ÷ (24 months of needs), at most 135%. Peacetime it settles where the old
      equipment did; at war, unless the arms flow rises, it drains over about two years. */
+  /* food: granaries in months of need; each working city's market adds CITY_FOOD to the harvest (up to CITY_FOOD_MAX);
+     population stops growing when the harvest is under GROW_AT of need, so it settles where the land feeds it */
+  E.GRAIN_MAX = 6; E.GRAIN_START = 3; E.CITY_FOOD = 0.04; E.CITY_FOOD_MAX = 0.25; E.GROW_AT = 1.05;
+  E.harvest = (n) => (n.a.harvest != null ? n.a.harvest : n.foodBal);
+  E.grainMonths = (n) => (E.harvest(n) >= 1 ? Infinity : (n.grain || 0) / (1 - E.harvest(n))); // until the granaries are empty
   E.ARS = { life: 24, war: 0.6, idle: 0.3, lossK: 0.25, loot: 0.03, shells: 0.3, player: 0.4, playerIn: 1.5 };
   /* Players found the drain confusing and ran dry at every war: the player's war burn, fallen kit and shells × 0.4, its refill × 1.5. The AI is unchanged. */
   E.drainK = (G, n) => (G && n.id === G.player ? E.ARS.player : 1);
@@ -234,8 +239,14 @@
     if (model === 'manor' && n.rent > 35) food *= 1 - (n.rent - 35) * 0.008;
     if (model === 'plan' || model === 'cyber') food *= clamp(0.9 + n.budget.welfare * 0.6, 0.9, 1.06);
     if (rec.harvest && n.mob > 0.05) food *= 1 - (n.mob - 0.05) * 2;
+    food *= 1 + Math.min(E.CITY_FOOD_MAX, E.CITY_FOOD * ID.nbe(n, B.CITY)); // market towns: cities pay for part of their own bread
     const need = Math.max(1, n.pop * 0.24);
     let bal = food / need, importCost = 0;
+    n.a.harvest = bal;
+    /* granaries: surplus fills them (in months of need), a shortfall draws them down before anyone goes hungry */
+    if (n.grain == null) n.grain = E.GRAIN_START;
+    if (bal >= 1) n.grain = Math.min(E.GRAIN_MAX, n.grain + (bal - 1));
+    else { const draw = Math.min(n.grain, 1 - bal); n.grain -= draw; bal += draw; }
     if (bal < 1 && n.laws.trade !== 'autarky' && routes.some((r) => r.border || r.sea) && n.gold > 20) {
       const buy = Math.min(1 - bal, 0.25); importCost = buy * need * 0.011; bal += buy;
     }

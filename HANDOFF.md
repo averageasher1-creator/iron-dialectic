@@ -908,6 +908,24 @@ pop-ups). Accelerationist systems get major advantages and punish being slow. `l
   the Alpine Fortress, and in one run in three its revolution spreads to a dozen states; Meridia survives in
   all, ending as the Continuum, the Patchwork, the Crowned Company, a junta or a social democracy.
 
+## Food rework: granaries, growth that follows the harvest, city markets
+
+Players found food the worst mechanic: famine came out of nowhere and cities caused it (each city is room for
+400 people, they grew into it, and 96 more food a month tipped the country under the 93% line).
+- **Granaries** (`n.grain`, months of need, saved with the nation; `E.GRAIN_START` 3, `E.GRAIN_MAX` 6): surplus
+  fills them, a shortfall draws them down before grain is bought abroad; famine only when both run out.
+  `n.a.harvest` = harvest ÷ need before stores and imports (read it through `E.harvest(n)`); `n.foodBal` is now
+  what people actually eat. AI research, the focus picker and the two food crisis measures read the harvest.
+  `E.grainMonths(n)` is the clock: on the top band (only while draining), food tooltip, Economy panel, an alert
+  under 12 months (red under 4) and advice.
+- **Growth follows food** (`C.tickPop`): growth × clamp((harvest − `E.GROW_AT` 1.05) × 20, 0, 1), so a population
+  settles where its land feeds it and never grows into famine.
+- **City markets**: each working city adds `E.CITY_FOOD` 4% to the harvest (up to `E.CITY_FOOD_MAX` 25%).
+- Measured with `node tools/food.js` (self-check plus 4 runs × 40 years): famine 0.2% → 0% of country-months
+  in normal play; famine still follows a real shock (a 70% harvest under autarky starves after the stores, ~30
+  months in the check). World population +25% at 40 years (cities now fill), troops +5%, living standards
+  +2, stability +2.
+
 ## Published (end of session 2)
 
 - Playable artifact: slug `b44285db-2e8b-4266-bfe0-39315542a8b3` (https://claude.ai/artifact/PG38qVqd6iMyayLf4gaVKx), live version `1795284426-2662` (version 15) with the dev console (` key, js/ui/devconsole.js),

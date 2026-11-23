@@ -19,7 +19,7 @@
   ID.BUILDINGS = [
     null,
     { id: 1, key: 'city', name: 'City', cost: 220, upkeep: 0.7, glyph: 'C',
-      desc: 'Room for 400K more people and 6 output a month, both scaled by its condition. Cities concentrate workers and intelligentsia, and their politics. War, bombing and capture damage it.' },
+      desc: 'Room for 400K more people, 6 output a month and a market that adds 4% to the harvest (up to 25% from all cities), all scaled by its condition. People only fill the room while the harvest feeds them. Cities concentrate workers and intelligentsia, and their politics. War, bombing and capture damage it.' },
     { id: 2, key: 'fort', name: 'Fortress', cost: 90, upkeep: 0.5, glyph: 'F',
       desc: 'Covers every tile within 6. At full condition attackers there advance at 56% speed and lose 2.5× the men, and shelling or bombing kills half as many defenders. Artillery and bombers wear it down; destroyed if its own tile falls.' },
     { id: 3, key: 'port', name: 'Port', cost: 130, upkeep: 0.4, glyph: 'P', needs: 'coast',

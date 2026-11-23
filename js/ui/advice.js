@@ -154,7 +154,7 @@
 
     /* food */
     if (n.famine) add(88, 'Famine', 'Food covers ' + pct(n.foodBal) + ' of need. People are starving: population, support and stability all fall until it ends.', [measure(G, n, 'c_requisition'), measure(G, n, 'c_grain'), go('Economy', 'eco')]);
-    else if (n.foodBal < 0.97) add(54, 'Food is short', 'The harvest covers ' + pct(n.foodBal) + ' of need. Move workers to the land or buy grain before it becomes famine.', [measure(G, n, 'c_grain'), measure(G, n, 'c_requisition'), go('Economy', 'eco')]);
+    else if (ID.Economy.grainMonths(n) < 12) add(n.foodBal < 1 ? 70 : 54, 'The granaries are emptying', 'The harvest covers ' + pct(ID.Economy.harvest(n)) + ' of need, and the stores last about ' + Math.round(ID.Economy.grainMonths(n)) + ' more months. Research agriculture, build a city for its market, demobilise, or buy grain before it becomes famine.', [measure(G, n, 'c_grain'), measure(G, n, 'c_requisition'), go('Economy', 'eco')]);
 
     /* money */
     const cap = ID.Economy.debtCap(n);
@@ -200,7 +200,7 @@
     if (best) out.push(ID.LEGIT[best].name + ' stands at ' + Math.round(n.src[best]));
     const loyal = ID.FACTION_IDS.filter((f) => UI.seen(n, f) >= 62 && n.fp[f] > 10);
     if (loyal.length) out.push(loyal.map((f) => ID.factionName(n, f)).join(' and ') + ' are loyal');
-    if (n.foodBal > 1.1) out.push('the granaries are full');
+    if (n.grain > 5) out.push('the granaries are full');
     if (n.net > 5) out.push('the treasury gains ' + Math.round(n.net) + ' a month');
     if (n.stab >= 60) out.push('the state is stable');
     return out.slice(0, 3);

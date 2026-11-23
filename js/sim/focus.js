@@ -218,7 +218,7 @@
     const av = Fo.available(G, n); if (!av.length) return;
     const I = ID.ideo(n), hist = !!G.historical;
     if (n.a.reformer == null) n.a.reformer = G.rng.chance(0.3) || ID.leaderLean(n, 'reform') > 0 ? 1 : 0; // some regimes set out to transform themselves; most do not
-    const wantArmy = n.nwars || n.a.threatened, hungry = n.foodBal < 1.02;
+    const wantArmy = n.nwars || n.a.threatened, hungry = (n.a.harvest || n.foodBal) < 1.02;
     const f = G.rng.weighted(av, (x) => {
       let w = x.tree === 'general' ? 1 : x.crisis ? 5 : x.ideoTree ? 2.5 : 3;
       if (x.tree !== 'general' && !x.crisis && !x.ideoTree && !x.proj && hist) w = x.hist ? 40 : G.story && G.story.loose ? 0.25 : 0;
