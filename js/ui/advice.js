@@ -154,7 +154,7 @@
 
     /* food */
     if (n.famine) add(88, 'Famine', 'Food covers ' + pct(n.foodBal) + ' of need. People are starving: population, support and stability all fall until it ends.', [measure(G, n, 'c_requisition'), measure(G, n, 'c_grain'), go('Economy', 'eco')]);
-    else if (ID.Economy.grainMonths(n) < 12) add(n.foodBal < 1 ? 70 : 54, 'The granaries are emptying', 'The harvest covers ' + pct(ID.Economy.harvest(n)) + ' of need, and the stores last about ' + Math.round(ID.Economy.grainMonths(n)) + ' more months. Research agriculture, build a city for its market, demobilise, or buy grain before it becomes famine.', [measure(G, n, 'c_grain'), measure(G, n, 'c_requisition'), go('Economy', 'eco')]);
+    else if (ID.Economy.grainMonths(n) < 12) add(n.foodBal < 1 ? 70 : 54, n.grain < 0.05 ? 'The granaries are empty' : 'The granaries are emptying', 'The harvest covers ' + pct(ID.Economy.harvest(n)) + ' of need, and ' + (n.grain < 0.05 ? (n.foodBal >= 1 ? 'the rest is bought abroad every month' : 'nothing is left in store') : 'the stores last about ' + Math.round(ID.Economy.grainMonths(n)) + ' more months') + '. Research agriculture, build a city for its market, demobilise, or buy grain before it becomes famine.', [measure(G, n, 'c_grain'), measure(G, n, 'c_requisition'), go('Economy', 'eco')]);
 
     /* money */
     const cap = ID.Economy.debtCap(n);

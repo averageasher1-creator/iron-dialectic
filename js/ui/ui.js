@@ -503,7 +503,7 @@
     for (const k in n.drift) if (n.drift[k] >= 65) add('<b>Drift ' + Math.round(n.drift[k]) + '%</b> toward ' + ID.IDEOLOGIES[k].name, 'gov', n.drift[k] >= 85);
     const gml = ID.Economy.grainMonths(n);
     if (n.famine) add('<b>Famine</b>: food at ' + Math.round(n.foodBal * 100) + '%', 'eco', true); else if (n.foodBal < 1) add('<b>Food short</b>: ' + Math.round(n.foodBal * 100) + '% of need', 'eco', true);
-    else if (gml < 12) add('<b>Granaries emptying</b>: ' + Math.round(gml) + ' months left', 'eco', gml < 4);
+    else if (gml < 12) add(n.grain < 0.05 ? '<b>Granaries empty</b>: buying grain abroad' : '<b>Granaries emptying</b>: ' + Math.round(gml) + ' months left', 'eco', n.grain >= 0.05 && gml < 4);
     if (n.debt > ID.Economy.debtCap(n) * 0.75) add('<b>Debt</b> near its limit', 'eco', true);
     else if (n.net < 0 && n.gold < 60) add('<b>Treasury</b> running dry', 'eco');
     if (n.inflation > 40) add('<b>Inflation ' + Math.round(n.inflation) + '</b>', 'eco', n.inflation > 60);

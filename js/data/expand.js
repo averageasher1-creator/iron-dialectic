@@ -20,10 +20,10 @@
 
   ID.FOCUS.crisis = [
     // the larder
-    M('c_requisition', 'Requisition the harvest', 0, 0, 30, 3, (n) => ((n.a.harvest || n.foodBal) >= 1 ? 'Only when the harvest falls short of need.' : ''),
+    M('c_requisition', 'Requisition the harvest', 0, 0, 30, 3, (n) => (ID.Economy.harvest(n) >= 1 ? 'Only when the harvest falls short of need.' : ''),
       'Soldiers at the threshing floors and a receipt for every sack. The towns will eat this winter. The villages will remember who did the counting.',
       [['mod', 'food', 0.18, 12, 'Requisitions'], ['sup', 'peasants', -8], ['unrest', 4], ['grievance', 6]]),
-    M('c_grain', 'Buy grain abroad', 0, 1, 30, 3, (n) => ((n.a.harvest || n.foodBal) >= 1 ? 'Only when the harvest falls short of need.' : needGold(n, 120)),
+    M('c_grain', 'Buy grain abroad', 0, 1, 30, 3, (n) => (ID.Economy.harvest(n) >= 1 ? 'Only when the harvest falls short of need.' : needGold(n, 120)),
       'Pay the foreign price and do not haggle. Hunger is the more expensive bargain.',
       [['gold', -120], ['mod', 'food', 0.12, 12, 'Imported grain'], ['sup', 'peasants', 3], ['sup', 'workers', 3]]),
     // the treasury

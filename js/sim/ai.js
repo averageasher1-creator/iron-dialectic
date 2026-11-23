@@ -119,7 +119,7 @@
   }
 
   function research(G, n) {
-    if ((n.a.harvest || n.foodBal) < 1.04 && n.tech.agr <= n.tech.ind) n.focus = 'agr';
+    if (ID.Economy.harvest(n) < 1.04 && n.tech.agr <= n.tech.ind) n.focus = 'agr';
     else if ((n.nwars || n.a.threatened || ID.ideo(n).dip.agg > 0.6) && n.tech.mil <= n.tech.ind) n.focus = 'mil';
     else if (n.tech.ind <= n.tech.mil + 1) n.focus = 'ind';
     else n.focus = n.tech.agr < n.tech.mil ? 'agr' : 'mil';
