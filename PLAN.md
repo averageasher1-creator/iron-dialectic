@@ -80,8 +80,10 @@ false figures**: nothing now, plan distortion up, and the next target is set fro
 lie raises the bar. Exposure risk grows with distortion and spikes in war, when the army goes looking for the kit
 the reports promised.
 - **Stops the degenerate play** (always lie): lies compound into higher targets, and war checks the books.
-- **Metric:** AI lies on 20–50% of misses; exposure ends 10–30% of lying streaks; no state sits above 80
-  distortion for more than five years.
+- **Metric:** a quota is missed in 25–45% of plan years; AI lies on 20–50% of misses; exposure ends 10–30% of
+  lying streaks; no state sits above 80 distortion for more than five years.
+- **Status:** built for Marxism-Leninism (`tools/quotas.js`; see HANDOFF.md, *Plan quotas*). The twins test waits
+  for the second system on the engine.
 
 ### C. The table: seats with demands
 Three named seats (unions and employers, three chambers, army, navy and air force, two blocs) each put one demand
@@ -258,8 +260,27 @@ event text is not a twist. Anarcho-Communism (E) and Nazi Accelerationism (the f
 - **Merchant convoys on the map** became route lines with raids through the existing naval code. Animated
   convoys are cost without decisions.
 - **International bodies and a musical theme per system** are out of scope until the engines ship.
-- **Peace by ideology** is partly done (install or annex, `noPeace` for the fire). What remains is small:
-  monarchies take tribute, liberals take reparations and bases. Do it alongside engine C.
+- **Peace by ideology** is built (HANDOFF.md, *Peace by ideology*): liberals take reparations and bases, conservative
+  systems take tribute, socialists and anarchists seed their movement, the fire annexes, the rest keep what they hold.
+
+## Built (November 2026)
+
+All nine engines are in: B for Marxism-Leninism in `sim/economy.js`, everything else in `js/data/engines.js`
+(see HANDOFF.md). Where the build departs from the table above:
+- **Forbidden verbs changed** where the planned one had no place in the game to hook: Maoism cannot hold a Thaw
+  (a settled bureaucracy also feeds the Red Guards); Market Socialism and Social Democracy cannot impose company
+  unions; Technocracy cannot censor the press (no rallies exist to forbid); Pan-Nationalism signs no
+  non-aggression pacts. The junta and the personalist dictatorship have no new forbidden verb: the clock and the
+  successor are their constraints.
+- **Merchant routes and holy sites** are drawn on the map (gold dashed lines between capitals, gold diamonds).
+- **The twins test** still needs a person at the keyboard; the soak cannot tell whether two systems feel alike.
+- Balance (16 varied games, against the same games without the file): a chain system tops a quarter of the
+  states in 5 of 16 games with the engines and 4 of 16 without; that was the techno-socialist spread already in
+  the base game. Fixed by the world pushing back on any system past 8–20% of the states (HANDOFF.md): now 0 of
+  16, largest share 23%. Minarchies may build forts and harbours; techno-socialism's chain
+  adds legitimacy only; juntas hand over less readily; the Third Position's offers are smaller.
+- **Forbidden verbs bind the AI too, so check what a ban costs the AI before adding one.** Taking emergency
+  rule from the democracies is balanced only by their promises and bargains.
 
 ## Build order
 

@@ -154,7 +154,8 @@
       if ((lose.a.warInd || 0) >= 2 * (win.a.warInd || 1)) win.flags.beatStronger = 1;
       ID.logGrief(lose, G.tick, 'Lost the war against ' + win.name + '.');
     }
-    ID.news(G, 'Peace between ' + A.name + ' and ' + Bn.name + (win ? ': ' + win.name + ' keeps its gains.' : ', with nothing settled.'), 'dip', A.id, Bn.id);
+    const terms = win && w.cb !== 'civil' ? D.terms(G, win, lose, s) : '';
+    ID.news(G, 'Peace between ' + A.name + ' and ' + Bn.name + (win ? ': ' + win.name + ' keeps its gains' + (terms ? '; ' + terms : '') + '.' : ', with nothing settled.'), 'dip', A.id, Bn.id);
     ID.chron(G, 'peace', 'Peace between ' + A.name + ' and ' + Bn.name + (win ? '; ' + win.name + ' is the victor.' : '.'), A.id, Bn.id);
     if (ID.Press && w.cb !== 'civil') ID.Press.peace(G, A, Bn, win, w);
     if (!G.headless) G.dirtyAll = true;
@@ -219,8 +220,39 @@
     // a great power may keep a small defeated state as a protectorate instead of annexing it
     if (ID.Sov && !L.dep && ID.isMajor(G, Wn) && !ID.isMajor(G, L) && L.tiles < Wn.tiles * 0.4 && !Wn.dep && G.rng.chance(0.3)) { D.resolveCapitulation(G, L, Wn, 'release'); ID.Sov.bind(G, L, Wn, 'protectorate'); return; }
     const I = ID.ideo(Wn);
-    const mode = (I.flags.satellite || I.dip.export >= 0.5 || (Wn.a.noncoreShare || 0) > 0.3) && L.tiles > 60 && G.rng.chance(0.7) ? 'install' : 'annex';
+    const mode = (I.flags.satellite || I.dip.export >= 0.5 || (Wn.a.noncoreShare || 0) > 0.3) && L.tiles > 60 && !ID.saturated(G, Wn.ideo) && G.rng.chance(0.7) ? 'install' : 'annex';
+    if (mode === 'annex' && L.tiles > 60 && D.dictate(G, L, Wn)) return; // liberals and monarchies take terms, not the whole country
     D.resolveCapitulation(G, L, Wn, mode);
+  };
+  /* Peace by ideology: what a victor takes besides the land it holds. Liberals: reparations, which the loser borrows,
+     and bases (a treaty state); conservative systems: tribute, a share of revenue for ten years; socialists and
+     anarchists: their movement follows the army home. Everyone else keeps what it holds. Returns the news clause. */
+  D.TRIBUTE_YEARS = 10;
+  D.terms = function (G, win, lose, s) {
+    const fam = ID.ideo(win).family, k = Math.min(1, Math.abs(s));
+    if (fam === 'liberal') {
+      const amt = Math.round(40 + k * 260), base = !!ID.Sov && k > 0.35 && !lose.dep && !win.dep && !ID.isMajor(G, lose);
+      lose.debt = (lose.debt || 0) + amt; win.gold += amt; win.cnt.reparations = (win.cnt.reparations || 0) + 1;
+      if (base) ID.Sov.bind(G, lose, win, 'treaty', true);
+      return lose.base + ' pays reparations of ' + amt + (base ? ' and grants bases on its soil' : '');
+    }
+    if (fam === 'conservative') {
+      lose.trib = { to: win.id, share: Math.round((0.06 + k * 0.1) * 100) / 100, until: G.tick + D.TRIBUTE_YEARS * 360 }; win.cnt.tributes = (win.cnt.tributes || 0) + 1;
+      return lose.base + ' pays a tribute of ' + Math.round(lose.trib.share * 100) + '% of its revenue for ' + D.TRIBUTE_YEARS + ' years';
+    }
+    if ((fam === 'socialist' || fam === 'anarchist') && ID.docSeed) { ID.docSeed(G, lose, win.ideo, 10 + k * 15, 3, win.id); return 'the revolution follows its army home'; }
+    return '';
+  };
+  /* A capitulation on a liberal's or a monarch's terms: released, then bound as a treaty state (liberal, after
+     reparations) or a tributary (vilayet for the absolute systems, protectorate for the others). false: not theirs to dictate. */
+  D.dictate = function (G, L, Wn) {
+    const fam = ID.ideo(Wn).family;
+    if (!ID.Sov || L.dep || Wn.dep || (fam !== 'liberal' && fam !== 'conservative')) return false;
+    D.resolveCapitulation(G, L, Wn, 'release');
+    if (fam === 'liberal') { L.debt = (L.debt || 0) + 300; Wn.gold += 300; }
+    ID.Sov.bind(G, L, Wn, fam === 'liberal' ? 'treaty' : ['absmon', 'theocracy', 'revival'].includes(Wn.ideo) ? 'vilayet' : 'protectorate');
+    Wn.cnt.dictated = (Wn.cnt.dictated || 0) + 1;
+    return true;
   };
   D.resolveCapitulation = function (G, L, Wn, mode) {
     if (!L.alive) return;
@@ -333,6 +365,7 @@
   D.evalProposal = function (G, from, to, kind) {
     const op = ID.op(G, to.id, from.id);
     const If = ID.ideo(from), It = ID.ideo(to);
+    const fb = ID.forbid && ID.forbid(G, from, kind, to); if (fb) return { ok: false, why: fb };
     if (ID.atWar(G, from.id, to.id) && kind !== 'peace') return { ok: false, why: 'You are at war.' };
     if (kind === 'trade') {
       if (to.laws.trade === 'autarky' || from.laws.trade === 'autarky') return { ok: false, why: 'Autarky rules out trade treaties.' };
@@ -640,6 +673,13 @@
       if (a.ideo === b.ideo && ID.ideo(a).flags.panNation && !((a.dep && a.dep.over === b.id) || (b.dep && b.dep.over === a.id))) base -= 75;
       const cur = G.rel[a.id * MAXN + b.id];
       G.rel[a.id * MAXN + b.id] = cur + (clamp(base, -100, 100) - cur) * 0.03;
+    }
+    // tribute owed under a peace treaty (D.terms)
+    for (const n of ns) {
+      const t = n.trib; if (!t) continue;
+      const to = G.nations[t.to];
+      if (G.tick >= t.until || !to || !to.alive || ID.atWar(G, n.id, t.to)) { n.trib = null; continue; } // paid off, or the treaty is torn up by war
+      const take = Math.max(0, n.rev || 0) * t.share; n.gold -= take; to.gold += take; n.a.tribPaid = take;
     }
     // capitulation of the nearly-destroyed
     for (const n of ns) {

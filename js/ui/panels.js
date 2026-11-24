@@ -136,6 +136,17 @@
       lv += kv([['Plan distortion', '<span class="' + (n.dist > 50 ? 'bad' : n.dist > 30 ? 'warn' : '') + '">' + Math.round(n.dist) + '</span>', 'The gap between the plan and reality. Efficiency falls as it rises. It grows faster with censorship and the size of the economy; science spending, a freer press, a Thaw and honest audits reduce it.']]);
       if (I.flags.fiveYear) {
         if (n.plan) { const p = n.plan; lv += '<div class="note ok"><b>Five-Year Plan</b> to ' + ID.dateOf(p.end).short + '. Industrial target ' + Math.round(p.target) + ', now ' + Math.round(n.ind) + '.</div>' + bar(n.ind - p.base, Math.max(1, p.target - p.base), n.ind >= p.target ? 'g' : 'o'); }
+        if (n.plan && I.flags.quotas) {
+          const E = ID.Economy, p = n.plan, y = Math.min(5, (p.y || 0) + 1);
+          lv += kv(['ind', 'grain', 'arms'].map((k) => { const real = E.quotaReal(n, k), t = E.quotaTarget(p, k, y);
+            return [E.QUOTA_NAME[k] + ' quota, year ' + y, '<span class="' + (real < t * E.QUOTA.tol ? 'warn' : 'good') + '">' + E.quotaFmt(k, real) + ' / ' + E.quotaFmt(k, t) + '</span>',
+              { ind: 'Industry on the plan’s path to its five-year target.', grain: 'The harvest against the people’s need. Plans heavy on industry and light on welfare feed fewer mouths.', arms: 'What the arms factories make each month. Bombing, strikes and lost factories cut it.' }[k] + ' Counted each year on the plan’s anniversary; a miss must be answered.']; }));
+        }
+        if (n.paper && I.flags.quotas) {
+          const E = ID.Economy, r = E.paperRisk(G, n) * 12, lvl = r < 0.05 ? 'low' : r < 0.15 ? 'rising' : 'high';
+          lv += kv([['On paper since ' + ID.dateOf(n.paperSince).short, Object.keys(n.paper).map((k) => E.QUOTA_NAME[k] + ' ' + E.quotaFmt(k, n.paper[k])).join(', '), 'Figures you reported but never reached. They close when the real figures catch up; the next plan is built on them.'],
+            ['Risk of exposure', '<span class="' + (lvl === 'high' ? 'bad' : lvl === 'rising' ? 'warn' : '') + '">' + lvl + '</span>', 'Grows with the size of the lie and with plan distortion. A war checks the arms books four times as hard.']]);
+        }
         else lv += '<div class="note red">No plan is in force: efficiency −8%. Set the shares below, then launch a plan from the State panel.</div>' + decisionCard(G, n, ID.Events.decision('five_year_plan'));
       }
     }

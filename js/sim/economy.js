@@ -165,9 +165,72 @@
   };
 
   E.startPlan = function (G, n) {
-    const heavy = n.budget.heavy;
-    n.plan = { start: G.tick, end: G.tick + 5 * 360, base: Math.max(1, n.ind), target: Math.max(1, n.ind) * (1.1 + heavy * 1.5), shares: Object.assign({}, n.budget) };
+    const heavy = n.budget.heavy, P = n.paper || {};
+    const base = Math.max(1, n.ind, P.ind || 0); // false figures raise the bar: the new plan starts from what was reported
+    n.plan = { start: G.tick, end: G.tick + 5 * 360, base, target: base * (1.1 + heavy * 1.5), shares: Object.assign({}, n.budget) };
+    if (ID.ideo(n).flags.quotas) Object.assign(n.plan, {
+      y: 0, lie: base / Math.max(1, n.ind), // how far the reported figures lifted this plan
+      grain: clamp(Math.max(E.harvest(n) + 0.02, P.grain || 0), 1, 1.05),
+      arms: Math.max(n.a.armsMade || 0, P.arms || 0), // hold arms output: missed when bombing, strikes or lost factories cut it
+    });
   };
+
+  /* Plan quotas (flags.quotas): three yearly targets — industry on the plan's path, grain (harvest against need) and
+     arms output. Industry is the ambition; grain and arms are missed in shocks. A miss is answered in plan_short; false figures book the reported figure in n.paper, a hidden gap the
+     next plan is built on, closed only by growing into it or by exposure (plan_exposed). War checks the arms books. */
+  E.QUOTA = { tol: 0.98, risk: 0.012, warArms: 4 };
+  E.QUOTA_NAME = { ind: 'Industry', grain: 'The harvest', arms: 'Arms output' };
+  E.quotaReal = (n, k) => (k === 'ind' ? n.ind : k === 'grain' ? E.harvest(n) : n.a.armsMade || 0);
+  // industry follows the curve plans actually grow on (slow while the new factories are built): (y/5)^2 of the way
+  E.quotaTarget = (p, k, y) => (k === 'ind' ? p.base + (p.target - p.base) * Math.pow(Math.min(5, Math.max(1, y)) / 5, 2) : p[k]);
+  E.quotaFmt = (k, v) => (k === 'grain' ? Math.round(v * 100) + '%' : k === 'ind' ? Math.round(v) + '' : Math.round(v * 10) / 10 + '');
+  /* the hidden gaps as fractions of what was reported, the arms gap ×4 while the army is fighting */
+  E.paperGap = (G, n, war) => {
+    let g = 0;
+    for (const k in n.paper || {}) g += Math.max(0, n.paper[k] - E.quotaReal(n, k)) / n.paper[k] * (war && k === 'arms' && n.nwars && E.active(G, n) ? E.QUOTA.warArms : 1);
+    return g;
+  };
+  // a month; a cybernetic network anywhere sees through planners' lies half again as often
+  E.paperRisk = (G, n) => E.paperGap(G, n, true) * E.QUOTA.risk * (0.5 + n.dist / 100) * (1 + (n.a.buried || 0)) * (ID.alive(G).some((o) => o.ideo === 'cybernetic') ? 1.5 : 1);
+  E.lie = function (G, n, miss) {
+    n.paper = n.paper || {};
+    for (const m of miss) n.paper[m.k] = Math.max(n.paper[m.k] || 0, m.t);
+    if (n.paperSince == null) { n.paperSince = G.tick; n.cnt.paperStreaks = (n.cnt.paperStreaks || 0) + 1; }
+    n.cnt.lies = (n.cnt.lies || 0) + 1;
+  };
+  /* the truth is out: the paper goes, and a plan built on it is rebased on the real figures */
+  E.clearPaper = (n) => {
+    n.paper = null; n.paperSince = null; n.a.buried = 0;
+    const p = n.plan; if (p && p.lie > 1) { p.base /= p.lie; p.target /= p.lie; p.lie = 1; }
+  };
+  function quotaYear(G, n) {
+    const p = n.plan, y = Math.floor((G.tick - p.start) / 360);
+    if (y <= (p.y || 0) || y > 5) return;
+    p.y = y;
+    const miss = [];
+    for (const k of ['ind', 'grain', 'arms']) {
+      const real = E.quotaReal(n, k), t = E.quotaTarget(p, k, y);
+      if (n.paper && n.paper[k] && real >= n.paper[k]) delete n.paper[k]; // grown into the lie: the books balance
+      if (real < t * E.QUOTA.tol) miss.push({ k, real, t });
+    }
+    if (n.paper && !Object.keys(n.paper).length) { n.paper = null; n.paperSince = null; n.a.buried = 0; } // grown into: the plan built on it stands
+    n.cnt.quotaYears = (n.cnt.quotaYears || 0) + 1;
+    if (!miss.length) {
+      n.fervor = clamp(n.fervor + 3, 0, 100); if (ID.Focus.FX.sig) ID.Focus.FX.sig(G, n, ['sig', 2]);
+      if (n.id === G.player) ID.news(G, 'Year ' + y + ' of the plan: every quota met. Heroes of labour are decorated in the capital.', 'eco', n.id);
+      return;
+    }
+    n.cnt.quotaMiss = (n.cnt.quotaMiss || 0) + 1;
+    ID.Events.queue(G, n, 'plan_short', { miss, y });
+  }
+  E.paperMonth = function (G, n) {
+    if (!n.paper || ID.Events.pending(G, 'plan_exposed') || ID.Politics.inCivil(G, n) || (n.a.civilEnd != null && G.tick - n.a.civilEnd < 360)) return;
+    if (!G.rng.chance(E.paperRisk(G, n))) return;
+    const war = !!(n.paper.arms && n.nwars && E.active(G, n));
+    n.cnt.exposed = (n.cnt.exposed || 0) + 1;
+    ID.Events.queue(G, n, 'plan_exposed', { gap: E.paperGap(G, n, false), war, since: n.paperSince });
+  };
+
   function endPlan(G, n) {
     const p = n.plan; n.plan = null;
     const ratio = n.ind / p.target;
@@ -176,6 +239,8 @@
       ID.addMod(n, 'legit', 6, 24, 'Plan fulfilled');
       ID.news(G, n.name + ' announces its Five-Year Plan fulfilled (' + Math.round(ratio * 100) + '% of target).', 'eco', n.id);
       if (n.id === G.player) { n.a.planRatio = ratio; ID.Events.queue(G, n, 'plan_fulfilled'); }
+    } else if (ID.ideo(n).flags.quotas) {
+      // the fifth year's reckoning (quotaYear) has already answered for the shortfall
     } else if (n.id === G.player) {
       n.a.planRatio = ratio; ID.Events.queue(G, n, 'plan_failed');
     } else {
@@ -199,7 +264,8 @@
     const landLaw = L.land.opts[n.laws.land], laborLaw = L.labor.opts[n.laws.labor], tradeLaw = L.trade.opts[n.laws.trade], pressLaw = L.press.opts[n.laws.press], mobLaw = L.mobil.opts[n.laws.mobil];
     const rec = ID.RECRUIT[n.laws.recruit];
     if (model === 'council' && (G.tick % 360 < 30 || !n.a.congress)) { E.congress(G, n); n.a.congress = 1; }
-    if (I.flags.fiveYear && n.plan) { n.budget = Object.assign({}, n.plan.shares); if (G.tick >= n.plan.end) endPlan(G, n); }
+    if (I.flags.fiveYear && n.plan) { n.budget = Object.assign({}, n.plan.shares); if (I.flags.quotas) quotaYear(G, n); if (G.tick >= n.plan.end) endPlan(G, n); }
+    if (n.paper) E.paperMonth(G, n);
     for (const c of CATS) n.budget[c] = clamp(n.budget[c], 0, model === 'council' ? 0.5 : E.budgetMax(n, c));
 
     /* labour */

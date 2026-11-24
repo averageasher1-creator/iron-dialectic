@@ -47,7 +47,7 @@
     if (n.destiny && !n.destiny.lapsed) { if (n.destiny.ideo === ideoId) n.name = n.destiny.name; else n.destiny.lapsed = true; } // a destiny's name and flag belong to the regime that reached it
     for (const c of ID.LAW_CATS) {
       const allowed = c === 'mobil' ? ['peace', 'partial', 'total'] : I.laws[c];
-      if (!n.laws[c] || allowed.indexOf(n.laws[c]) < 0) n.laws[c] = c === 'mobil' ? 'peace' : I.lawDef[c];
+      if (!n.laws[c] || allowed.indexOf(n.laws[c]) < 0 || (ID.forbid && ID.forbid(G, n, 'law:' + c + ':' + n.laws[c]))) n.laws[c] = c === 'mobil' ? 'peace' : I.lawDef[c];
     }
     if (!n.laws.recruit || I.recruit.allowed.indexOf(n.laws.recruit) < 0) n.laws.recruit = I.recruit.def;
     n.budget = Object.assign({ welfare: 0, security: 0, science: 0, arms: 0, heavy: 0 }, I.budget);
@@ -55,7 +55,7 @@
     if (e.tax != null) n.tax = e.tax;
     if (e.rent != null) n.rent = e.rent;
     if (e.pact != null) n.pact = e.pact;
-    n.plan = null; n.pactBroken = false; n.emergency = false; n.motions = 0;
+    n.plan = null; n.paper = null; n.paperSince = null; n.pactBroken = false; n.emergency = false; n.motions = 0;
     if (!init && n.cnt) n.cnt.sustain = 0; // the years an objective has been held begin with the regime that holds it
     n.drift = {}; for (const d of I.drift) n.drift[d.to] = 0;
     n.mob = Math.min(n.mob, ID.maxMob(n));
@@ -227,6 +227,7 @@
   /* Returns '' when allowed, otherwise the reason. */
   ID.canBuild = function (G, n, i, type) {
     const b = ID.BUILDINGS[type];
+    const fb = ID.forbid && ((type === B.FACTORY && ID.forbid(G, n, 'build:factory')) || (type === B.CITY && ID.forbid(G, n, 'build:city'))); if (fb) return fb;
     if (G.owner[i] !== n.id) return 'You can only build on your own land.';
     if (G.bld[i]) return 'There is already a building on this tile.';
     if (G.rad[i]) return 'This land is irradiated.';
@@ -282,6 +283,11 @@
   ID.addOpBoth = (G, a, b, v) => { ID.addOp(G, a, b, v); ID.addOp(G, b, a, v); };
   ID.sameBloc = (G, a, b) => { const A = G.nations[a], Bn = G.nations[b]; return A.bloc && A.bloc === Bn.bloc; };
   ID.alive = (G) => G.nations.filter((n) => n && n.alive);
+  /* The world pushes back against any system that spreads too far: the share of living states it holds, how much a
+     movement seeded abroad still grows (full below 8%, nothing at 20%), and whether victors may still install it (below 15%). */
+  ID.ideoShare = (G, ideo) => { const A = ID.alive(G); return A.length ? A.filter((o) => o.ideo === ideo).length / A.length : 0; };
+  ID.spreadDamp = (G, ideo) => clamp((0.2 - ID.ideoShare(G, ideo)) / 0.12, 0, 1);
+  ID.saturated = (G, ideo) => ID.ideoShare(G, ideo) >= 0.15;
 
   /* ---------------------------------------------------------------- news, chronicle, effects */
   ID.news = function (G, text, cls, a, b) {

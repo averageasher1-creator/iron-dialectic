@@ -19,6 +19,7 @@
   const hostileNb = (G, n) => { const out = []; for (const k in G.border[n.id] || {}) { const o = G.nations[+k]; if (o && o.alive && ID.ideo(o).family !== ID.ideo(n).family && ID.op(G, n.id, o.id) < 10) out.push(o); } return out; };
   /* grow a movement for ideology `ideo` in some of t's provinces */
   const seed = (G, t, ideo, amt, count, sponsor) => {
+    if (sponsor && ID.spreadDamp) { amt *= ID.spreadDamp(G, ideo); if (amt <= 0) return; } // the world closes ranks against a system that has spread too far
     const mine = []; for (let p = 1; p < G.provinces.length; p++) if (G.provinces[p].owner === t.id) mine.push(G.provinces[p]);
     for (let c = 0; c < count && mine.length; c++) {
       const Pr = G.rng.pick(mine);

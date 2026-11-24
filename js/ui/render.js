@@ -4,7 +4,7 @@
   const ID = (globalThis.ID = globalThis.ID || {});
   const T = ID.T, B = ID.B, TERR = ID.TERRAIN, clamp = ID.clamp;
   const R = (ID.Render = {});
-  const PAPER = [235, 226, 204], INK = [23, 20, 15], SEA = [171, 188, 184], RED = [200, 40, 30], RED2 = [156, 29, 21], RIVER = [120, 150, 160];
+  const PAPER = [235, 226, 204], INK = [23, 20, 15], SEA = [171, 188, 184], RED = [200, 40, 30], RED2 = [156, 29, 21], RIVER = [120, 150, 160], GOLD = [196, 150, 52];
   R.PAPER = PAPER; R.INK = INK; R.RED = RED;
   const cam = (R.cam = { x: 0, y: 0, z: 4 });
   let cv = null, ctx = null, mapCv = null, mapCtx = null, img = null, px = null, G = null;
@@ -386,6 +386,26 @@
       const X = sx((n.capital % W) + 0.5), Y = sy(((n.capital / W) | 0) + 0.5);
       if (X < -20 || Y < -20 || X > cw + 20 || Y > ch + 20) continue;
       star(X, Y, clamp(z * 1.6, 6, 15), k === G.player ? css(RED) : css(INK), css(PAPER));
+    }
+    // merchant republics' trade routes (engines.js): ours bold, other republics' faint, so a war's cost is visible
+    for (const n of ID.alive(G)) {
+      const Lr = n.ideo === 'merchant' && n.sigx && n.sigx.routes; if (!Lr || !Lr.length || n.capital < 0) continue;
+      const mine = n.id === G.player, x0 = sx((n.capital % W) + 0.5), y0 = sy(((n.capital / W) | 0) + 0.5);
+      for (const id of Lr) {
+        const o = G.nations[id]; if (!o || !o.alive || o.capital < 0) continue;
+        const x1 = sx((o.capital % W) + 0.5), y1 = sy(((o.capital / W) | 0) + 0.5), mx = (x0 + x1) / 2, my = (y0 + y1) / 2 + Math.hypot(x1 - x0, y1 - y0) * 0.1;
+        ctx.strokeStyle = css(GOLD, mine ? 0.95 : 0.4); ctx.lineWidth = mine ? 3 : 1.5; ctx.setLineDash([7, 5]);
+        ctx.beginPath(); ctx.moveTo(x0, y0); ctx.quadraticCurveTo(mx, my, x1, y1); ctx.stroke(); ctx.setLineDash([]);
+      }
+    }
+    // holy sites (engines.js): fixed provinces every theocracy claims
+    if (ID.holySites) for (const p of ID.holySites(G)) {
+      const Pr = G.provinces[p]; if (!Pr || Pr.center == null) continue;
+      const X = sx((Pr.center % W) + 0.5), Y = sy(((Pr.center / W) | 0) + 0.5), s = clamp(z * 1.3, 6, 12);
+      if (X < -20 || Y < -20 || X > cw + 20 || Y > ch + 20) continue;
+      ctx.beginPath(); ctx.moveTo(X, Y - s); ctx.lineTo(X + s * 0.7, Y); ctx.lineTo(X, Y + s); ctx.lineTo(X - s * 0.7, Y); ctx.closePath();
+      ctx.fillStyle = css(GOLD); ctx.strokeStyle = css(INK); ctx.lineWidth = 1.5; ctx.fill(); ctx.stroke();
+      if (z > 2.2) { ctx.font = '700 12px "Barlow Condensed", sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'top'; ctx.lineWidth = 3; ctx.strokeStyle = css(PAPER, 0.9); ctx.strokeText('Holy site', X, Y + s + 2); ctx.fillStyle = css(INK); ctx.fillText('Holy site', X, Y + s + 2); }
     }
 
     // boats and missiles

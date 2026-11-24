@@ -76,7 +76,7 @@
     war: { name: 'Lightning revolution', desc: 'Fronts move a fifth faster and the first months of every war a third faster; the front raises the enemy’s own workers. Lose a tenth of the homeland and morale breaks by a sixth.', dp: { speed: 1.2, blitz: 0.33, liberate: 1, brittle: 0.15 } },
     order: { key: 'ts_signal', name: 'The signal', gold: 60, cd: 180, target: 1, range: 999,
       desc: 'A single word on every frequency of the enemy country: our movement surges in six of its provinces, and if its government is already shaky (stability under 45) the revolution breaks out at once.',
-      run: (G, n, t) => { ID.docSeed(G, t, 'technosoc', 25, 6, n.id); if (t.id !== G.player && t.stab < 45 && !ID.Politics.inCivil(G, t) && ID.Politics.movement(G, t).ideo === 'technosoc') { ID.Politics.uprising(G, t, 'technosoc'); return 'The signal goes out, and ' + t.base + ' rises.'; } return 'The signal goes out across ' + t.base + '.'; },
+      run: (G, n, t) => { ID.docSeed(G, t, 'technosoc', 25, 6, n.id); if (t.id !== G.player && t.stab < 45 && !ID.Politics.inCivil(G, t) && !ID.saturated(G, 'technosoc') && ID.Politics.movement(G, t).ideo === 'technosoc') { ID.Politics.uprising(G, t, 'technosoc'); return 'The signal goes out, and ' + t.base + ' rises.'; } return 'The signal goes out across ' + t.base + '.'; },
       ai: (G, n) => n.nwars > 0 },
     month: (G, n) => {
       const x = n.sigx, ts = n.tech.ind + n.tech.mil + n.tech.agr;

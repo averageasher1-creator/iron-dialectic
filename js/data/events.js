@@ -112,6 +112,8 @@
     opts: [
       { label: 'Annex everything', tip: 'All their remaining land becomes yours. Unrest in non-core provinces, a large jump in threat.', fx: [['fn', (G, n, c) => { const L = G.nations[c.loser]; if (L.alive && ID.atWar(G, n.id, L.id)) ID.Diplomacy.resolveCapitulation(G, L, n, 'annex'); }]] },
       { label: 'Install a friendly regime', tip: 'They keep their core land under your ideology and join your bloc. Counts toward ideological victory and costs you no occupation.', fx: [['fn', (G, n, c) => { const L = G.nations[c.loser]; if (L.alive && ID.atWar(G, n.id, L.id)) ID.Diplomacy.resolveCapitulation(G, L, n, 'install'); }]] },
+      { label: 'Reparations and bases', can: (n) => ID.ideo(n).family === 'liberal' && !!ID.Sov, tip: 'A liberal peace: they keep their land, pay 300 in reparations (borrowed, so their debts mount) and become a treaty state with our bases on their soil.', fx: [['fn', (G, n, c) => { const L = G.nations[c.loser]; if (L.alive && ID.atWar(G, n.id, L.id) && !ID.Diplomacy.dictate(G, L, n)) ID.Diplomacy.resolveCapitulation(G, L, n, 'release'); }]], ai: 2 },
+      { label: 'Make them a tributary', can: (n) => ID.ideo(n).family === 'conservative' && !!ID.Sov, tip: 'They keep their throne and their land, and pay a share of every year’s revenue to us.', fx: [['fn', (G, n, c) => { const L = G.nations[c.loser]; if (L.alive && ID.atWar(G, n.id, L.id) && !ID.Diplomacy.dictate(G, L, n)) ID.Diplomacy.resolveCapitulation(G, L, n, 'release'); }]], ai: 2 },
       { label: 'Take an indemnity and withdraw', tip: 'Gold now, their gratitude, and no new threat.', fx: [['fn', (G, n, c) => { const L = G.nations[c.loser]; if (L.alive && ID.atWar(G, n.id, L.id)) ID.Diplomacy.resolveCapitulation(G, L, n, 'release'); }]] },
     ] });
   ev({ id: 'ally_attacked', sys: 1, sfx: 'alarm', title: 'An ally is attacked', text: (n, G, c) => G.nations[c.enemy].name + ' has declared war on your ally ' + G.nations[c.ally].name + '. The treaty is unambiguous.',
@@ -124,6 +126,27 @@
       { label: 'Admit the shortfall', fx: [['discipline', -10], ['fervor', -6], ['legitmod', -4, 12, 'Plan shortfall'], ['dist', -6]] },
       { label: 'Falsify the figures', tip: 'Announce fulfilment. It will not count toward your objective, and the planners will learn what kind of numbers you want.', fx: [['dist', 14], ['discipline', 4], ['corr', 4]] },
       { label: 'Find the wreckers', fx: [['grievance', 10], ['discipline', 8], ['sup', 'intelligentsia', -10], ['sup', 'bureaucracy', -6], ['mod', 'sci', -0.1, 18, 'Engineers on trial']] },
+    ] });
+  /* plan quotas (Marxism-Leninism): a yearly miss, and the day false figures are found out (sim/economy.js) */
+  const QE = () => ID.Economy;
+  const quotaList = (c) => c.miss.map((m) => QE().QUOTA_NAME[m.k] + ' ' + QE().quotaFmt(m.k, m.real) + ' against a quota of ' + QE().quotaFmt(m.k, m.t)).join('; ');
+  ev({ id: 'plan_short', sys: 1, tray: 1, title: 'The quotas have been missed',
+    text: (n, G, c) => 'Year ' + c.y + ' of the Five-Year Plan, and the planning commission’s figures are in. ' + quotaList(c) + '. The figures have not yet left the commission.',
+    opts: [
+      { label: 'Admit the shortfall', fx: [['discipline', -6], ['legitmod', -3, 12, 'Plan shortfall'], ['dist', -4]], ai: (n) => (n.dist > 50 ? 3 : 1) },
+      { label: 'Blame the managers', can: (n) => n.auth >= 10, tip: 'Three directors lose their posts and their dachas; the line is reasserted.', fx: [['auth', -10], ['sup', 'bureaucracy', -6], ['discipline', 4], ['sig', 4]], ai: (n) => (n.auth > 40 ? 1.5 : 0.3) },
+      { label: 'Find the saboteurs', tip: 'A show trial of engineers. The crowd is satisfied; the laboratories are not.', fx: [['grievance', 8], ['fervor', 4], ['discipline', 4], ['sup', 'intelligentsia', -8], ['mod', 'sci', -0.08, 12, 'Engineers on trial']] },
+      { label: 'Report false figures', tip: 'Nothing now. The gap stays on the books until the real figures catch up or someone finds it; the next plan is built on what you report, and a war checks the arms books.',
+        fx: [['dist', 6], ['discipline', 3], ['fn', (G, n, c) => QE().lie(G, n, c.miss)], ['note', 'The next plan is built on the reported figures', false]],
+        ai: (n, G) => (n.nwars ? 0.5 : QE().paperGap(G, n) < 0.1 ? 2.5 : 1) },
+    ] });
+  ev({ id: 'plan_exposed', sys: 1, sfx: 'alarm', title: 'The figures were false',
+    text: (n, G, c) => (c.war ? 'The army went to the depots for the kit the plan reported. Half of it was never made. ' : 'An inspector of the control commission compared the reports with the warehouses. ') +
+      'The figures reported since ' + ID.dateOf(c.since != null ? c.since : G.tick).short + ' were false, and now the {BODY} knows it.',
+    opts: [
+      { label: 'Shoot the planners', fx: [['sig', -6], ['grievance', 10], ['discipline', 6], ['sup', 'intelligentsia', -8], ['mod', 'sci', -0.1, 24, 'Planners shot'], ['dist', -10], ['fn', (G, n) => QE().clearPaper(n)]], ai: 2 },
+      { label: 'Publish the true figures', tip: 'The planners learn that true numbers are wanted. The party pays in public.', fx: [['sig', -14], ['legitmod', -8, 24, 'The true figures'], ['dist', -30], ['fn', (G, n) => QE().clearPaper(n)]], ai: (n) => (n.dist > 50 ? 2 : 1) },
+      { label: 'Bury it again', can: (n) => n.auth >= 20, tip: 'The figures stay false, and the next leak comes sooner.', fx: [['auth', -20], ['dist', 8], ['fn', (G, n) => { n.a.buried = (n.a.buried || 0) + 1; }]], ai: (n) => (!n.a.buried && n.auth > 40 ? 1 : 0.1) },
     ] });
   ev({ id: 'debt_crisis', sys: 1, sfx: 'alarm', title: 'The debt cannot be serviced', text: 'The last loan was raised to pay the interest on the one before. No bank at home or abroad will take more {A} paper.',
     opts: [

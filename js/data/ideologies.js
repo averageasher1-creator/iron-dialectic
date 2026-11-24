@@ -60,7 +60,7 @@
     laws: { press: ['regulated', 'censored', 'propaganda'], security: ['police', 'secret', 'terror'], land: ['collective', 'smallholder'], labor: ['company', 'banned'], religion: ['tolerance', 'secular', 'atheism'], trade: ['autarky', 'protect'] },
     lawDef: { press: 'censored', security: 'secret', land: 'collective', labor: 'company', religion: 'atheism', trade: 'autarky' },
     dip: { export: 0.5, agg: 0.55, trade: 0.5, cb: ['liberate'] },
-    flags: { fiveYear: 1, satellite: 1 },
+    flags: { fiveYear: 1, quotas: 1, satellite: 1 },
     drift: [
       { to: 'personalist', label: 'Cult of personality', why: 'Bureaucratisation, terror and total propaganda concentrate the party into one man.',
         pressure: (n) => (n.bureau - 40) * 0.012 + b(L(n, 'security', 'terror')) * 0.5 + b(L(n, 'press', 'propaganda')) * 0.3 + b(war(n)) * 0.2 - 0.35 },

@@ -17,10 +17,10 @@ const pct = (a, b) => (b ? Math.round((a / b) * 1000) / 10 : 0) + '%';
   ID.Game.tick(G); while (G.tick % 30) ID.Game.tick(G);
   const h0 = E.harvest(n);
   ok(n.grain > 0 && !n.famine, 'a country starts with grain in store (' + n.grain.toFixed(1) + ' months)');
-  const g0 = n.grain; n.foodLand *= 0.7 / h0; // a lost harvest: 70% of need
+  const g0 = n.grain; const cut = (n.foodLand *= 0.7 / h0); // a lost harvest: 70% of need, held there even if the country conquers farmland meanwhile
   let first = -1, grainAtFamine = -1, pop0 = n.pop, grew = false;
   for (let m = 1; m <= 36 && first < 0; m++) {
-    for (let d = 0; d < 30; d++) { ID.Game.tick(G); if (m > 1 && n.pop > pop0 + 1e-6) grew = true; pop0 = n.pop; }
+    for (let d = 0; d < 30; d++) { ID.Game.tick(G); n.foodLand = cut; if (m > 1 && n.pop > pop0 + 1e-6) grew = true; pop0 = n.pop; }
     if (n.famine && first < 0) { first = m; grainAtFamine = n.grain; }
   }
   ok(first > 1, 'the stores hold off famine for ' + first + ' months after a bad harvest (70% of need)');

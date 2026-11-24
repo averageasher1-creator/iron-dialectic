@@ -123,7 +123,8 @@
     else Ev.auto(G, n, def, ctx || {});
   };
   Ev.options = function (G, n, def, ctx) {
-    const src = typeof def.opts === 'function' ? def.opts(G, n, ctx) : def.opts;
+    let src = typeof def.opts === 'function' ? def.opts(G, n, ctx) : def.opts;
+    if (ID.forbid && ID.forbid(G, n, 'emergency')) src = src.filter((o) => !(Array.isArray(o.fx) && o.fx.some((f) => f[0] === 'emergency' && f[1]))); // a system that never rules by decree is never offered it
     return src.filter((o) => !o.can || o.can(n, G, ctx));
   };
   Ev.txt = (v, G, n, ctx) => (typeof v === 'function' ? v(n, G, ctx) : v).replace(/\{N\}/g, n.name).replace(/\{A\}/g, n.adj).replace(/\{L\}/g, n.leader.title + ' ' + n.leader.name).replace(/\{BODY\}/g, ID.ideo(n).control.body);
@@ -217,6 +218,7 @@
   };
   /* '' if available, else the reason. */
   Ev.decisionBlock = function (G, n, d) {
+    const fb = ID.forbid && ID.forbid(G, n, 'dec:' + d.id); if (fb) return fb;
     if ((n.cd[d.id] || 0) > G.tick) return 'Available again ' + ID.dateOf(n.cd[d.id]).short + '.';
     const c = d.cost || {};
     if (c.auth && n.auth < c.auth) return 'Needs ' + c.auth + ' authority.';

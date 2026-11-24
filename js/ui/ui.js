@@ -512,6 +512,7 @@
     if (n.load > 1) add('<b>Planning network overloaded</b>', 'eco', true);
     if (I.flags.fiveYear && !n.plan) add('<b>No plan in force</b> (efficiency −8%)', 'gov');
     if (n.strike > 0) add('<b>Strike</b>: industry −30%', 'gov', true);
+    if (n.trib && G.nations[n.trib.to]) add('<b>Tribute</b> to ' + esc(G.nations[n.trib.to].base) + ': ' + Math.round(n.trib.share * 100) + '% of revenue until ' + ID.yearOf(n.trib.until), 'eco');
     if (I.elections && n.electionAt && !n.emergency && n.electionAt - G.tick < 240) { const f = ID.Politics.electionForecast(G, n); add('<b>Election in ' + Math.max(1, Math.round((n.electionAt - G.tick) / 30)) + ' months</b>: forecast ' + Math.round(f * 100) + '%', 'gov', f < 0.5); }
     if ((n.a.unrest || 0) > 40) add('<b>Unrest ' + Math.round(n.a.unrest) + '</b> across the country', 'gov', true);
     if (n.a.mv && n.a.mv.ideo && n.a.mv.share > 0.12 && !UI.fuzzy(n)) add('<b>' + ID.IDEOLOGIES[n.a.mv.ideo].name + '</b> movement strong in ' + Math.round(n.a.mv.share * 100) + '% of the country', 'gov', n.a.mv.share > 0.22);

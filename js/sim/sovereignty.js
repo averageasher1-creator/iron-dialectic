@@ -130,7 +130,7 @@
   };
   Sv.deposeNow = function (G, n, over) {
     const friendly = ID.ideoAffinity(n.ideo, over.ideo) < 0 ? (fam(over) === 'socialist' ? over.ideo : ID.ideo(over).family === 'liberal' ? 'conmon' : over.ideo) : null;
-    if (friendly && friendly !== n.ideo && ID.IDEOLOGIES[friendly]) ID.Politics.changeIdeology(G, n, friendly, 'imposed', over.id);
+    if (friendly && friendly !== n.ideo && ID.IDEOLOGIES[friendly] && !ID.saturated(G, friendly)) ID.Politics.changeIdeology(G, n, friendly, 'imposed', over.id);
     else if (ID.Politics.newLeader) ID.Politics.newLeader(G, n);
     n.dep.res = Math.max(0, n.dep.res - 18); n.legit = Math.max(0, n.legit - 10); n.stab = Math.max(0, n.stab - 4);
     n.flags.deposed = (n.flags.deposed || 0) + 1;

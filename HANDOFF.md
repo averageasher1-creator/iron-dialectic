@@ -926,6 +926,103 @@ Players found food the worst mechanic: famine came out of nowhere and cities cau
   months in the check). World population +25% at 40 years (cities now fill), troops +5%, living standards
   +2, stability +2.
 
+## Plan quotas: the first specialization engine (PLAN.md engine B, Marxism-Leninism)
+
+- **Yearly quotas** (`flags.quotas`, Marxism-Leninism only; Maoism and Juche keep the old end-of-plan check).
+  `E.startPlan` adds `p.grain` (harvest against need, 100–105%) and `p.arms` (arms output, `n.a.armsMade`) to
+  the industry target. On each anniversary `quotaYear` checks all three (2% tolerance); industry follows
+  `(y/5)^2` of the way to the plan target, the curve plans actually grow on. All met: fervour and party unity,
+  no prompt. A miss queues `plan_short` (a tray dispatch): admit, blame the managers, find the saboteurs, or
+  **report false figures** (`E.lie`: the claimed figure goes to `n.paper`, distortion +6).
+- **The paper** (`n.paper`, `n.paperSince`; cleared on a change of regime). A gap closes when the real figure
+  catches up. The next plan starts from the reported industry figure (`p.lie` records the lift).
+  `E.paperRisk` (a month) = gap × 0.012 × (0.5 + distortion/100) × (1 + times buried); the arms gap counts ×4
+  while the army is fighting. Exposure (`plan_exposed`, never in or within a year of a civil war): shoot the
+  planners, publish the true figures, or bury it again (authority 20, the next leak comes sooner).
+  `E.clearPaper` rebases a lifted plan on the real figures.
+- Economy panel: this year's three quotas, what is on paper since when, and the exposure risk (low, rising, high).
+- `node tools/quotas.js [--runs 16 --years 60]`: self-check plus the PLAN.md bands. First tuning: a straight
+  industry path and a kit-based arms quota missed in 76% of plan years; now about 37%.
+
+## The specialization engines (PLAN.md engines A, C–I, and B beyond Marxism-Leninism)
+
+`js/data/engines.js`, loaded last among the data scripts. `hook(key, {month, extra, acts, drop})` layers each
+engine onto a doctrine: its `month` runs after the doctrine's own, its `extra` rows follow, its actions are
+appended (`drop` removes old ones). State lives in `n.sigx` and resets with the doctrine on a change of system.
+Continuous effects use `keep(n, label, k, v)`, a two-month modifier refreshed each month (timed modifiers stack).
+- **Forbidden verbs**: `ID.FORBID[ideo][verb]` (a reason or a function), read through `ID.forbid(G, n, verb, t, wild)`
+  by `P.lawAllowed` ('law:cat:opt'; 'law:cat:*' only explains options the law list already excludes),
+  `Ev.decisionBlock` ('dec:id'), `Ev.options` ('emergency': options that start emergency rule are not offered;
+  the AI's annulled election is skipped too), `D.evalProposal` ('ally', 'nap', 'trade', 'peace', from the
+  proposer's side) and `ID.canBuild` ('build:factory', 'build:city'; forts and ports are never forbidden). `buildFree` (programme and charter buildings)
+  does not check it.
+- **A, pledges** (liberal, conmon, demsoc, natpop): up to three dated promises (`n.sigx.pl`), acts `pl_<ideo>_<id>`;
+  `always` promises break the moment they fail, the rest are judged at the due date (the next election for the
+  democracies). `PL_OUT` holds each twist. Democratic socialism's `patience` (−22 per promise kept, coup at 0);
+  natpop's `np_more` ladder; conmon's three prerogatives a reign (`cm_dissolve`, `cm_back`, `cm_refuse`).
+  The junta's handover clock (`x.ho`, victories +1 year, civil wars won +2, `ju_postpone`, `ju_deadline`; a third
+  postponement brings a coup). Theocracy's three edicts set `n.flags.edict_*`, which `ID.FORBID.theocracy` reads.
+- **B, targets**: technocracy forecasts (`tc_fc_bold` 6%, `tc_fc_safe` 1%; two misses → `tc_replaced`); market
+  socialism's quota (`x.q`, share sold at market 50/30/12%, `x.ineq`, `ms_square` at 70); cybernetic focus
+  (`cy_point_*`; any cybernetic state makes plan lies 1.5× likelier to be exposed, in `E.paperRisk`); NRX guidance
+  (`nx_guide_high` 5%, `nx_guide_low` 1%; a missed high guidance under acceleration 30 can cost the leader).
+- **C, the table** (`table` dispatch, ctx `{sys, seats, dem}`): socdem, corporatist and junta seats in `SEATS`,
+  grudges `x.gr` (0–5, −0.5 a year) and their effects in `GRUDGE`; corporatist `cp_abolish` once a reign.
+  Council `co_motions` (lobby two of three, each passes on its odds). Third Positionism `tp_offers`. Personalist
+  `pe_test` on the least loyal figure of the circle.
+- **G**: the anarcho-syndicalist strike fund (`x.fund`, `an_dues`, `an_gstrike`; the war order's strike also
+  lasts longer from the fund). Agrarian `ag_harvest` each autumn and `ag_consent` when the cities go hungry.
+- **I, the instrument** (`x.inst`; mao, natsyn, revival, natsoc): growth in `INST`, a loose and a rein action
+  each, unrest past 80, `inst_turn` past 85. Natsyn's squads can be bought by capital (`nsy_capital`); the
+  revival's guard skims revenue; `ns_knives` ends the street army for good (`n.flags.knives`).
+- **H, the heir** (absmon, conmon, juche, personalist): `x.heir {edu, prog}`, `heir_edu`, twenty years of the
+  education's bonus after a succession (a rise in `n.cnt.successions`, so a leader retiring at an election does not count); `am_marry` and inherited claims;
+  juche's `jc_title` track (a succession under 100 is a crisis); personalist `pe_succ` / `pe_unsucc`.
+- **E**: anarcho-communist orders in occupied communes (`ac_ambush`, `ac_rail`, `ac_rise`; unsupplied communes
+  drain the gauge). **F**: minarchist charters (`mi_charter`, a free building six months later, `mi_company` at four),
+  merchant routes (`x.routes`, +6% trade each, cut by war), juche guidance (`jc_guide`), theocratic holy sites
+  (`G.holy` via `ID.holySites(G)`: three provinces picked from the map seed, not `G.rng`, so the map can draw them
+  from the start; claimed by every theocracy). `ui/render.js` draws both after the capitals: every merchant
+  republic's routes as gold dashed curves (the player's bold), holy sites as gold diamonds, labelled when zoomed in.
+- **D, the chain** (trot, pannat, technosoc, revival): links from `changes(G)` (who changed system this month),
+  or the broadcast's `n.a.spreadAt` for technosoc; at most four, broken after two years; the multiplier is the
+  chain divided by the number of states of that system; each link raises threat. Trotskyism broken twice →
+  `tr_chain_thermidor`; Pan-Nationalism's other wing → `pn_schism`.
+- **Balance, measured** (`tools/engines.js --runs 16`, against `ID_SKIP=engines`). A scenario fixes its own seed,
+  so historical runs only differ when the tool reseeds `G.rng` after `newGame` (it does now); before that, the
+  four historical games of an 8-run soak were one game counted four times, and the snowball figure flipped
+  between 0 and 4 of 8 on any change. With varied runs: a chain system above 25% of the states in 5 of 16
+  games with the engines and 4 of 16 without (the techno-socialist spread of session 14, one historical run in
+  three); techno-socialism 1172 state-years with the engines, 1447 without. Kept from the misleading round:
+  minarchies may build forts and ports (only works and towns are forbidden) and techno-socialism's chain adds
+  no broadcasts.
+- **The world pushes back** (`sim/world.js`: `ID.ideoShare`, `ID.spreadDamp`, `ID.saturated`), for every ideology:
+  movements seeded abroad with a sponsor (`ID.docSeed`) grow fully below 8% of the living states and not at all
+  at 20%; a victor whose system holds 15% annexes instead of installing (`diplomacy.js`), an overlord no longer
+  imposes it on a dependency (`sovereignty.js`), and techno-socialism's signal sparks no instant uprising.
+  Measured (16 varied games, `$TEMP/routes.js`-style count of `changeIdeology` into technosoc): the spread came
+  from sponsored revolutions (19) and governments imposed after wars (16), never on its own. After: a chain
+  system above 25% of the states in 0 of 16 games (largest 23%, was 63%), techno-socialism 816 state-years
+  (1447 in the base game). `ID_ENG_OFF=ideo,…` and `ID_FORBID_OFF=all|ideo,…` switch parts off (both skip the self-check).
+- `node tools/engines.js [--runs 16 --years 50 --seed 17]`: self-check (every system for four years with every action,
+  every new dispatch, seven forbidden verbs, and the twists: a broken promise at the election, a grudge, the
+  officers' coup, laws a new system forbids, the usury edict, holy war and fellow theocracies) and the soak. `ID_SKIP=engines` (read by `tools/load.js`) measures the
+  game without the file.
+
+## Peace by ideology (`sim/diplomacy.js`)
+
+- `D.terms(G, win, lose, score)`, called by every negotiated peace with a winner (not civil wars), returns the
+  clause the news adds. Liberal family: reparations of 40 + 260 × |score| that the loser borrows (`debt`) and the
+  victor banks, and bases (a `treaty` dependency) when the score is above 0.35 and the loser is not a major
+  power. Conservative family: `lose.trib = {to, share 6–16%, until}`, paid monthly out of revenue in `D.month`
+  (ends after ten years, or at war with the receiver). Socialist and anarchist families: the victor's movement
+  seeded in the loser (damped by `ID.spreadDamp`). Others: land only, as before.
+- `D.dictate(G, L, Wn)`: a capitulation on liberal or conservative terms. The loser is released, then bound as
+  a treaty state after 300 in reparations (liberal) or as a vilayet (absmon, theocracy, revival) or protectorate
+  (conmon, agrarian). The AI uses it instead of annexing any state over 60 tiles; the player gets *Reparations
+  and bases* or *Make them a tributary* on the capitulation dispatch.
+- Alert: *Tribute to X* while one is owed. Counters `cnt.reparations`, `cnt.tributes`, `cnt.dictated`.
+
 ## Published (end of session 2)
 
 - Playable artifact: slug `b44285db-2e8b-4266-bfe0-39315542a8b3` (https://claude.ai/artifact/PG38qVqd6iMyayLf4gaVKx), live version `1795284426-2662` (version 15) with the dev console (` key, js/ui/devconsole.js),

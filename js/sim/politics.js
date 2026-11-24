@@ -170,7 +170,8 @@
   P.lawAllowed = function (G, n, cat, opt) {
     const I = ID.ideo(n);
     const list = cat === 'recruit' ? I.recruit.allowed : cat === 'mobil' ? ['peace', 'partial', 'total'] : I.laws[cat];
-    if (list.indexOf(opt) < 0) return 'Not compatible with ' + I.name + '.';
+    if (list.indexOf(opt) < 0) return (ID.forbid && ID.forbid(G, n, 'law:' + cat + ':' + opt, null, true)) || 'Not compatible with ' + I.name + '.';
+    const fb = ID.forbid && ID.forbid(G, n, 'law:' + cat + ':' + opt); if (fb) return fb;
     if (ID.Sov && n.dep && (cat === 'trade' || cat === 'mobil' || cat === 'recruit') && ID.Sov.vetoes(G, n, 'law')) return 'Your overlord, ' + G.nations[n.dep.over].name + ', decides this.';
     const o = cat === 'recruit' ? ID.RECRUIT[opt] : ID.LAWS[cat].opts[opt];
     if (o.needs === 'era1' && ID.eraOf(G.tick) < 1) return 'Needs the Age of Masses (1925).';
@@ -723,7 +724,7 @@
       const opp = P.oppositionParty(G, n);
       ID.logGrief(n, G.tick, 'Lost the election with ' + Math.round(g * 100) + '% of the vote.');
       if (n.id === G.player) ID.Events.queue(G, n, 'election_lost', { opp, share: g });
-      else if (G.rng.chance(0.12) && n.fs.military > 55) { n.emergency = true; n.flags.everEmergency = 1; n.mandate = 10; n.stab -= 10; ID.news(G, 'The government of ' + n.name + ' annuls its election defeat.', 'bad', n.id); }
+      else if (G.rng.chance(0.12) && n.fs.military > 55 && !(ID.forbid && ID.forbid(G, n, 'emergency'))) { n.emergency = true; n.flags.everEmergency = 1; n.mandate = 10; n.stab -= 10; ID.news(G, 'The government of ' + n.name + ' annuls its election defeat.', 'bad', n.id); }
       else P.changeIdeology(G, n, opp, 'election');
     }
   };
